@@ -44,8 +44,6 @@ sleep 5
 
 function deploy_tools {
      
-    kubectl apply -f zipkin-gke.yaml
-
     secret=$(kubectl get secret gcloud-config -o name)
     if [ "$secret" = "" ]; then
         kubectl create secret generic gcloud-config --from-file=gcp/gcloud-config.json -n default
