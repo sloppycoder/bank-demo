@@ -6,3 +6,7 @@ grpc:
   server:
     port: 50051
     keep-alive-time: 3h
+
+tracing:
+  jaeger-thrift-endpoint: http://127.0.0.1:14268/api/traces
+  stackdriver: false
