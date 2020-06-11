@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: casa-account-v2
+  labels:
+    app: casa-account
+spec:
+  selector:
+    matchLabels:
+      app: casa-account
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: casa-account
+        version: v2
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: server
+          image: gcr.io/vino9-276317/demo-bank/casa-account-v2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 50051
+              protocol: TCP
+          env:
+            - name: ZIPKIN_COLLECTOR_URL
+              value: "http://zipkin.istio-system:9411/api/v2/spans"
+          readinessProbe:
+            exec:
+              command: ["/grpc_health_probe", "-addr", "127.0.0.1:50051"]
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["/grpc_health_probe", "-addr", "127.0.0.1:50051"]
+            periodSeconds: 10
+          resources:
+            limits:
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: casa-account
+spec:
+  type: ClusterIP
+  selector:
+    app: casa-account
+  ports:
+    - name: grpc
+      port: 50051

@@ -1,0 +1,4 @@
+resources:
+  - 2_rbac.yaml
+  - 3_service.yaml
+

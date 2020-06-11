@@ -1,0 +1,26 @@
+apiVersion: skaffold/v2beta1
+kind: Config
+metadata:
+  name: casa-account-v1
+
+build:
+  artifacts:
+  - image: gcr.io/vino9-276317/demo-bank/casa-account-v1
+    jib: {}
+
+deploy:
+  kustomize:
+    paths:
+      - k8s/envs/local
+
+profiles:
+  - name: gke
+    activation:
+      - kubeContext: gke1
+    build:
+      googleCloudBuild:
+        projectId: vino9-276317
+    deploy:
+      kustomize:
+        paths:
+          - k8s/envs/gke

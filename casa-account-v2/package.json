@@ -1,0 +1,15 @@
+{
+  "name": "casa-account-v2",
+  "version": "0.1.0",
+  "description": "dummy service for returning details of casa-account",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@grpc/proto-loader": "^0.5.4",
+    "async": "^1.5.2",
+    "google-protobuf": "^3.11.0",
+    "grpc": "^1.24.2",
+    "grpc-health-check": "^1.7.0",
+    "lodash": "^4.6.1",
+    "minimist": "^1.2.0"
+  }
+}

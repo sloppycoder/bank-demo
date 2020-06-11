@@ -1,0 +1,98 @@
+#!/bin/bash
+
+# exit when any command fails
+set -e
+
+function create_minikube {
+    minikube start \
+    --driver=kvm2 \
+    --disk-size='50000mb' \
+    --cpus='4' \
+    --memory='16384mb' \
+    --kubernetes-version='1.16.9' 
+
+    sleep 5
+
+    minikube addons enable metallb
+}
+
+function start_dashboard {
+    echo "starting dashboard"
+    cd dashboard
+    skaffold run
+    cd ..
+}
+
+function start_casa_account_v1 {
+    echo "starting casa-account-v1"
+    cd casa-account-v1
+    skaffold run
+    cd ..
+}
+
+function start_casa_account_v2 {
+    echo "starting casa-account-v2"
+    cd casa-account-v2
+    skaffold run
+    cd ..
+}
+
+function start_load_generator {
+    echo "starting load-generator"
+    cd load-generator
+    skaffold run
+    cd ..
+}
+
+
+if [ "$1" = "--minikube" ]; then
+    create_minikube
+
+    echo 
+    echo now manually install istio to minikube, e.g.
+    echo
+    echo     istioctl manifest apply --set profile=demo --set values.tracing.enabled=true --set values.pilot.traceSampling=100
+    echo
+    echo wait a while for istio to finish install and stabalizes, 
+    echo then rerun this script without --minikube flag to install demo application
+
+    exit 0
+fi
+
+
+CTX=$(kubectl config current-context)
+case "$CTX" in
+
+    "gke1")
+        kubectl apply -f istio/envs/gke/namespace.yaml    
+   
+        ;;
+
+    "minikube")
+        kubectl apply -f istio/envs/local/namespace.yaml    
+   
+        ;;
+
+    "")
+        echo No current kubectl context?...
+        exit 1
+        ;;
+
+esac
+
+
+start_dashboard
+start_casa_account_v1
+start_casa_account_v2
+start_load_generator
+
+
+echo ===
+echo 
+echo all modules started, run the following command to expose dashboard to external traffic
+echo
+echo cd istio
+echo "kustomize build envs/local | kubectl apply -f -  "
+echo
+
+

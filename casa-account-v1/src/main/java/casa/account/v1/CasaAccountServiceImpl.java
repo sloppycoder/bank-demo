@@ -28,7 +28,7 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
   @Value("${tracing.jaeger-thrift-endpoint:off}")
   private String jaegerThriftEndpoint;
 
-  @Value("${tracing.stackdriver:off}")
+  @Value("${tracing.stackdriver:false}")
   private String stackdriverFlag;
 
   public void getAccount(GetCasaAccountRequest req, StreamObserver<CasaAccount> responseObserver) {
