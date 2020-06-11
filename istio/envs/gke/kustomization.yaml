@@ -1,0 +1,12 @@
+bases:
+- ../../base
+
+namespace: playground
+
+patchesJson6902:
+  - target:
+      group: networking.istio.io
+      version: v1alpha3
+      kind: Gateway
+      name: bank-gateway
+    path: patch_gateway_host.yaml

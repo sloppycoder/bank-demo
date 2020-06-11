@@ -1,0 +1,4 @@
+resources:
+  - 1_expose_dashboard.yaml  
+  - 2_casa_all_v1.yaml 
+
