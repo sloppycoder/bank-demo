@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# exit when any command fails
+set -e
+
+DASHBOARD_HOST=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+
+if [ -z "$USERS" ]; then
+    USERS=1
+fi
+
+echo generating load to ${DASHBOARD_HOST}:31400 with $USERS users
+
+# activate python venv before running locust
+if [ ! -f venv/bin/activate ]; then
+    echo
+    echo please create vitual environment venv and install app depenencies first. e.g.
+    echo python -m venv venv
+    echo source venv/bin/activate
+    echo pip install -r requirements.txt
+    echo
+
+    exit 1
+fi
+
+source  venv/bin/activate
+
+locust --host="${DASHBOARD_HOST}:31400" --headless -u $USERS 
+
