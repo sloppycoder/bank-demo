@@ -1,0 +1,8 @@
+micronaut:
+  application:
+    name: casa-account-v1
+
+grpc:
+  server:
+    port: 50051
+    keep-alive-time: 3h

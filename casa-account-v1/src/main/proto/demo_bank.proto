@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package demobank.api;
+
+option go_package = ".;api";
+option java_multiple_files = true;
+option java_package = "demo.bank";
+option java_outer_classname = "ApiProto";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service CustomerService {
+  rpc GetCustomer (GetCustomerRequest) returns (Customer);
+}
+
+message Customer {
+  string customer_id = 1;
+  string name = 2;
+  string login_name = 3;
+}
+
+message GetCustomerRequest {
+  string customer_id = 1;
+}
+
+service CasaAccountService {
+  rpc GetAccount (GetCasaAccountRequest) returns (CasaAccount);
+}
+
+message CasaAccount {
+  string account_id = 2;
+  string nickname = 3;
+  string prod_code = 4;
+  string prod_name = 5;
+  string currency = 6;
+  Status status = 8;
+  google.protobuf.Timestamp status_last_updated = 9;
+  repeated Balance balances = 10;
+
+  enum Status {
+    ACTIVE = 0;
+    BLOCKED = 1;
+    DORMANT = 2;
+  }
+}
+
+message Balance {
+  double amount = 1;
+  Type type = 2; // balance type
+  bool credit_flag = 3;
+  google.protobuf.Timestamp last_updated = 4;
+
+  enum Type {
+    CURRENT = 0;
+    AVAILABLE = 1;
+  }
+}
+
+message GetCasaAccountRequest {
+  string account_id = 1;
+}
+
+service DashboardService {
+  rpc GetDashboard (GetDashboardRequest) returns (Dashboard);
+}
+
+message Dashboard {
+  Customer customer = 1;
+  repeated CasaAccount casa = 2;
+  google.protobuf.Timestamp last_successful_login = 3;
+}
+
+message GetDashboardRequest {
+  string login_name = 1;
+}

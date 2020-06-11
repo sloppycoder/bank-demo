@@ -1,0 +1,5 @@
+profile: grpc
+defaultPackage: casa.account.v1
+---
+testFramework: junit
+sourceLanguage: java

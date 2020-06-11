@@ -1,0 +1,7 @@
+micronaut:
+  application:
+    name: casa-account-v1
+
+grpc:
+  server:
+    port: ${random.port}
