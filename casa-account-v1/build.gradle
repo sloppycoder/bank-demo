@@ -37,6 +37,12 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "io.micronaut.test:micronaut-test-junit5"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+
+    // opencensus-api is already used in grpc-core library
+    // just need to add implementation here.
+    // no instrumentation needed.
+    implementation "io.opencensus:opencensus-impl:0.24.0"
+    implementation "io.opencensus:opencensus-exporter-trace-jaeger:0.24.0"
 }
 
 test.classpath += configurations.developmentOnly
