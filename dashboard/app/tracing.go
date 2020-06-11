@@ -8,6 +8,7 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -48,7 +49,8 @@ func initStats(exporter *stackdriver.Exporter) {
 }
 
 func initStackdriverExporter() *stackdriver.Exporter {
-	if os.Getenv("USE_STACKDRIVER") == "0" {
+	env := strings.ToLower(os.Getenv("USE_STACKDRIVER"))
+	if env != "yes" || env != "true" {
 		log.Info("stackdriver disabled by environment variable")
 		return nil
 	}

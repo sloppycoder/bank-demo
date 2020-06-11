@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  labels:
+    app: dashboard
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: dashboard
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: dashboard
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: server
+          image: gcr.io/vino9-276317/demo-bank/dashboard
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 50051
+              protocol: TCP
+          env:
+            - name: GRPC_LISTEN_ADDR
+              value: ":50051"
+            - name: JAEGER_THRIFT_ENDPOINT
+              value: "http://jaeger-collector.istio-system:14268/api/traces"
+            - name: USE_STACKDRIVER
+              value: "false"
+          readinessProbe:
+            exec:
+              command: ["/grpc_health_probe", "-addr", "127.0.0.1:50051"]
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["/grpc_health_probe", "-addr", "127.0.0.1:50051"]
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 125m
+              memory: 100Mi
+            limits:
+              cpu: 1000m
+              memory: 384Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard
+  labels:
+    app: dashboard
+    service: dashboard
+spec:
+  type: ClusterIP
+  selector:
+    app: dashboard
+  ports:
+    - name: grpc
+      port: 50051
