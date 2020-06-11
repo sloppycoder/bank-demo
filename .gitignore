@@ -1,0 +1,44 @@
+# file types
+*.bak
+*.so
+*.*~
+*.iml
+*.swp
+*.log
+*.gz
+*.jar
+.DS_Store
+
+.idea
+
+# directories
+**/bin/*
+**/tmp/*
+
+# editor stuff
+**/.idea/
+**/.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.settings
+
+
+# java stuff
+**/target/
+**/build/
+**/.gradle
+**/out/
+
+# python stuff
+**/venv/
+**/__pycache__
+*.pyc
+
+# nodejs stuff
+**/node_modules/
+
+# gcloud credentials
+gcp/gcloud-config.json
+
