@@ -1,0 +1,5 @@
+.git/
+.idea/
+*.iml
+k8s/
+.vscode/
