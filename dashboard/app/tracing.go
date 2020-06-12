@@ -8,12 +8,13 @@ import (
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 )
 
 func initJaegerExporter() *jaeger.Exporter {
-	svcAddr := os.Getenv("JAEGER_THRIFT_ENDPOINT")
+	svcAddr := os.Getenv("JAEGER_ENDPOINT")
 	if svcAddr == "" {
 		log.Info("jaeger exporter not initialized")
 		return nil
@@ -24,7 +25,7 @@ func initJaegerExporter() *jaeger.Exporter {
 		Process: jaeger.Process{
 			ServiceName: "dashboard",
 			Tags: []jaeger.Tag{
-				jaeger.StringTag("service", "dashboard"),
+				jaeger.StringTag("runtime", runtime.Version()),
 			},
 		},
 	})
