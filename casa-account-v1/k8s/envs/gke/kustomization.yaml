@@ -1,4 +1,17 @@
-bases:
+resources:
 - ../../base
 
 namespace: playground
+
+patchesJson6902:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: casa-account-v1
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/0
+        value: { "name": "TRACING_USE_STACKDRIVER", "value": "yes" }
+# the environment variable name must match application.yml setting
+# in order to override it

@@ -8,5 +8,5 @@ grpc:
     keep-alive-time: 3h
 
 tracing:
-  jaeger-thrift-endpoint: http://127.0.0.1:14268/api/traces
-  stackdriver: false
+  jaeger-endpoint: off
+  use-stackdriver: false

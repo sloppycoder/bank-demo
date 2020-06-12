@@ -44,6 +44,7 @@ dependencies {
     // no instrumentation needed.
     implementation "io.opencensus:opencensus-impl:0.24.0"
     implementation "io.opencensus:opencensus-exporter-trace-jaeger:0.24.0"
+    implementation "io.opencensus:opencensus-exporter-trace-stackdriver:0.24.0"
 }
 
 test.classpath += configurations.developmentOnly

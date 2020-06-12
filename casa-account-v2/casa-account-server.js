@@ -1,5 +1,23 @@
 // very bad nodejs code below...sorry...
 
+"use strict";
+
+// google tracer works, opencensus-exporter-stackdriver is
+// doesn't work when deployed in GKE, not sure why
+
+const useStackdriver = (() => {
+  let env = process.env.USE_STACKDRIVER;
+  return env && (env === "yes" || env === "true");
+})();
+
+if (useStackdriver) {
+  require("@google-cloud/trace-agent").start({
+    samplingRate: 1000, // max that GCP allows
+    logLevel: 3, // info
+  });
+  console.log("google cloud trace agent initialized");
+}
+
 const fs = require("fs");
 const path = require("path");
 const _ = require("lodash");
@@ -32,7 +50,16 @@ function initJaegerExporter() {
     serviceName: "casa-account-v2",
     host: agentHost,
     port: agentPort,
-    tags: [{ key: "runtime", value: "nodejs " + process.versions.node }],
+    tags: [
+      {
+        key: "runtime",
+        value: "nodejs " + process.versions.node,
+      },
+      {
+        key: "service",
+        value: "casa-account-v2",
+      },
+    ],
     bufferTimeout: 10, // time in milliseconds
     logger: logger.logger("info"),
   });
