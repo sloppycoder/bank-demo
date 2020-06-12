@@ -13,6 +13,6 @@
     "@opencensus/core": "^0.0.22",
     "@opencensus/nodejs": "^0.0.22",
     "@opencensus/exporter-jaeger": "^0.0.22",
-    "@opencensus/exporter-stackdriver": "^0.0.22"
+    "@google-cloud/trace-agent": "^4.2.5"
   }
 }

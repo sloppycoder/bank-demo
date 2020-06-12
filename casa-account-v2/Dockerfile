@@ -6,4 +6,4 @@ RUN npm install
 
 EXPOSE 50051
 
-ENTRYPOINT [ "node", "casa-account-server.js", "-p", "50051"]
+ENTRYPOINT [ "node", "casa-account-server.js" ]
