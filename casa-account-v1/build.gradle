@@ -31,6 +31,8 @@ dependencies {
     implementation "io.micronaut:micronaut-validation"
     implementation "io.micronaut:micronaut-runtime"
     implementation "javax.annotation:javax.annotation-api"
+    implementation "com.datastax.oss:java-driver-core:4.6.1"
+    implementation "com.datastax.oss:java-driver-mapper-processor:4.6.1"
     runtimeOnly "ch.qos.logback:logback-classic:1.2.3"
     testAnnotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"

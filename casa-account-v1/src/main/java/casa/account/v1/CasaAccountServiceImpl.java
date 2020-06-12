@@ -1,12 +1,15 @@
 package casa.account.v1;
 
-import com.google.common.collect.ImmutableMap;
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
 import demo.bank.CasaAccount;
 import demo.bank.CasaAccountServiceGrpc;
 import demo.bank.GetCasaAccountRequest;
 import io.grpc.stub.StreamObserver;
 import io.micronaut.context.annotation.Value;
 import io.opencensus.exporter.trace.jaeger.JaegerExporterConfiguration;
+import io.opencensus.exporter.trace.jaeger.JaegerTraceExporter;
 import io.opencensus.exporter.trace.stackdriver.StackdriverTraceConfiguration;
 import io.opencensus.exporter.trace.stackdriver.StackdriverTraceExporter;
 import io.opencensus.trace.AttributeValue;
@@ -17,11 +20,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Singleton;
-
-import io.opencensus.exporter.trace.jaeger.JaegerTraceExporter;
-
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.file.Paths;
 import java.util.Map;
 
 @Singleton
@@ -37,6 +40,17 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
 
   @Value("${tracing.use-stackdriver:false}")
   private String stackdriverFlag;
+
+  @Value("${cassandra.instance:astra}")
+  private String cassandraInstance;
+
+  @Value("${cassandra.username:vino9}")
+  private String dbUsername;
+
+  @Value("${cassandra.password}")
+  private String dbPassword;
+
+  private CqlSession session;
 
   public void getAccount(GetCasaAccountRequest req, StreamObserver<CasaAccount> responseObserver) {
     String accountId = req.getAccountId();
@@ -57,6 +71,47 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
   // it's probably better to move this out to a Factory class
   @PostConstruct
   public void initialize() {
+    initializeTracing();
+    initializeCassandraSession();
+  }
+
+  @PreDestroy
+  public void cleanup() {
+    if (this.session != null) {
+      logger.info("closing CsqlSession");
+      this.session.close();
+    }
+  }
+
+  private void initializeCassandraSession() {
+    CqlSession session;
+
+    if ("astra".equalsIgnoreCase(cassandraInstance)) {
+      session =
+          CqlSession.builder()
+              .withCloudSecureConnectBundle(Paths.get("secure-connect-vino9.zip"))
+              .withAuthCredentials(dbUsername, dbPassword)
+              .withKeyspace("vino9")
+              .build();
+    } else {
+      session =
+          CqlSession.builder()
+              .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
+              .withKeyspace("bank")
+              .withLocalDatacenter("Cassandra")
+              .build();
+    }
+
+    ResultSet rs = session.execute("select release_version from system.local");
+    Row row = rs.one();
+    String releaseVersion = row.getString("release_version");
+
+    this.session = session;
+
+    logger.info("connected to cassandra version {}", releaseVersion);
+  }
+
+  private void initializeTracing() {
     boolean exporterInitialized = false;
 
     exporterInitialized = initializeStackdriverExporter();
@@ -91,9 +146,17 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
     return false;
   }
 
+  boolean isStackdriverEnabled() {
+    return "yes".equalsIgnoreCase(stackdriverFlag) || "true".equalsIgnoreCase(stackdriverFlag);
+  }
+
   boolean initializeStackdriverExporter() {
+    if (!isStackdriverEnabled()) {
+      return false;
+    }
+
     Map<String, AttributeValue> attributes =
-        ImmutableMap.of(
+        Map.of(
             "service", AttributeValue.stringAttributeValue("casa-account-v1"),
             "runtime", AttributeValue.stringAttributeValue(System.getProperty("java.version")));
 
