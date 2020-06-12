@@ -56,6 +56,12 @@ ext {
     grpcVersion="1.18.0"
 }
 
+jib {
+    from {
+        image = 'gcr.io/distroless/java:11'
+    }
+}
+
 sourceSets {
     main {
         java {
