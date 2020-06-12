@@ -13,4 +13,4 @@ fi
 
 DASHBOARD_HOST=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
 echo calling gRPC service at ${DASHBOARD_HOST}:31400
-echo '{ "login_name": "user001" }' | $EVANS --proto ../protos/demo-bank.proto   --host $DASHBOARD_HOST --port 31400 cli call demobank.api.DashboardService.GetDashboard
+echo '{ "login_name": "user001" }' | $EVANS --proto ../protos/demo_bank.proto   --host $DASHBOARD_HOST --port 31400 cli call demobank.api.DashboardService.GetDashboard
