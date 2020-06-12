@@ -1,3 +1,0 @@
-- op: replace
-  path: /spec/servers/0/hosts/0
-  value: "dashboard.red.vino9.net"

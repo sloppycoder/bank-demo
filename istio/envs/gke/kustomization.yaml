@@ -1,4 +1,4 @@
-bases:
+resources:
 - ../../base
 
 namespace: playground
@@ -9,4 +9,7 @@ patchesJson6902:
       version: v1alpha3
       kind: Gateway
       name: bank-gateway
-    path: patch_gateway_host.yaml
+    patch: |-
+      - op: replace
+        path: /spec/servers/0/hosts/0
+        value: "dashboard.red.vino9.net"
