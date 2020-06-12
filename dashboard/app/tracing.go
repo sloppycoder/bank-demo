@@ -26,6 +26,7 @@ func initJaegerExporter() *jaeger.Exporter {
 			ServiceName: "dashboard",
 			Tags: []jaeger.Tag{
 				jaeger.StringTag("runtime", runtime.Version()),
+				jaeger.StringTag("service", "dashboard"),
 			},
 		},
 	})
@@ -51,13 +52,19 @@ func initStats(exporter *stackdriver.Exporter) {
 
 func initStackdriverExporter() *stackdriver.Exporter {
 	env := strings.ToLower(os.Getenv("USE_STACKDRIVER"))
-	if env != "yes" || env != "true" {
+	if env != "yes" && env != "true" {
 		log.Info("stackdriver disabled by environment variable")
 		return nil
 	}
 
 	for i := 1; i <= 3; i++ {
-		exporter, err := stackdriver.NewExporter(stackdriver.Options{})
+		exporter, err := stackdriver.NewExporter(stackdriver.Options{
+			ProjectID: "vino9-276317",
+			DefaultTraceAttributes: map[string]interface{}{
+				"runtime": runtime.Version(),
+				"service":     "dashboard",
+			},
+		})
 		if err == nil {
 			log.Info("stackdriver exporter initialized")
 			return exporter
@@ -73,19 +80,26 @@ func initStackdriverExporter() *stackdriver.Exporter {
 }
 
 func InitTracing() {
-	jaegerExporter := initJaegerExporter()
-	if jaegerExporter != nil {
-		trace.RegisterExporter(jaegerExporter)
-	}
+	exporterAvailable := false
 
+	// try stackdriver first
 	sdExporter := initStackdriverExporter()
 	if sdExporter != nil {
 		trace.RegisterExporter(sdExporter)
 		initStats(sdExporter)
+		exporterAvailable = true
 	}
 
-	if jaegerExporter != nil || sdExporter != nil {
+	// if stackdriver is not available, then jaeger
+	if !exporterAvailable {
+		jaegerExporter := initJaegerExporter()
+		if jaegerExporter != nil {
+			trace.RegisterExporter(jaegerExporter)
+			exporterAvailable = true
+		}
+	}
 
+	if exporterAvailable {
 		trace.ApplyConfig(trace.Config{
 			DefaultSampler: trace.AlwaysSample(),
 		})

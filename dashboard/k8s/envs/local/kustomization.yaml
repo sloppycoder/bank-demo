@@ -1,4 +1,15 @@
-bases:
+resources:
 - ../../base
 
 namespace: breeze
+
+patchesJson6902:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: dashboard
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/0
+        value: { "name": "JAEGER_ENDPOINT", "value": "http://jaeger-collector.istio-system:14268/api/traces" }
