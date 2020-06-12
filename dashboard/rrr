@@ -1,4 +1,0 @@
-make
-
-USE_STACKDRIVER=0 CASA_SVC_ADDR="127.0.0.1:50051" JAEGER_THRIFT_ENDPOINT="http://localhost:14268/api/traces" GRPC_LISTEN_ADDR="127.0.0.1:40042" bin/server
-
