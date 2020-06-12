@@ -3,24 +3,28 @@
 const fs = require("fs");
 const path = require("path");
 const _ = require("lodash");
+// gRPC stuff
 const grpc = require("grpc");
 const protoLoader = require("@grpc/proto-loader");
 const health = require("grpc-health-check");
-
+// opencensus stuff
 const { logger } = require("@opencensus/core");
 const tracing = require("@opencensus/nodejs");
 const { plugin } = require("@opencensus/instrumentation-grpc");
 const { JaegerTraceExporter } = require("@opencensus/exporter-jaeger");
+const {
+  StackdriverTraceExporter,
+} = require("@opencensus/exporter-stackdriver");
 
 function initJaegerExporter() {
   agentHost = process.env.JAEGER_AGENT_HOST;
   agentPort = process.env.JAEGER_AGENT_PORT
     ? process.env.JAEGER_AGENT_PORT
     : "6832";
-  
+
   if (!agentHost || agentHost === "off") {
-    console.log("jaeger exporter not initialized")
-    return undefined
+    console.log("jaeger exporter not initialized");
+    return undefined;
   }
 
   // can probably simplify this by utilizing jaeger's init from env var logic
@@ -28,30 +32,63 @@ function initJaegerExporter() {
     serviceName: "casa-account-v2",
     host: agentHost,
     port: agentPort,
-    tags: [{ key: "runtime", value: process.versions.node }],
+    tags: [{ key: "runtime", value: "nodejs " + process.versions.node }],
     bufferTimeout: 10, // time in milliseconds
     logger: logger.logger("info"),
   });
 }
 
+function initStackdriverExporter() {
+  let useStackdriver = process.env.USE_STACKDRIVER;
+  if (
+    useStackdriver &&
+    (useStackdriver === "yes" || useStackdriver == "true")
+  ) {
+    return (exporter = new StackdriverTraceExporter({
+      projectId: "vino9-276317",
+    }));
+  }
+  return undefined;
+}
+
 function initTracing() {
-  exporter = initJaegerExporter();
-  if (!exporter) {
-    console.log("tracing not initialized")
-    return
+  // there can be only one exporter active at a time
+  // jaeger exproter will take precedence over stackdriver exporter
+  var exporter;
+
+  let jaegerExporter = initJaegerExporter();
+  if (jaegerExporter) {
+    exporter = jaegerExporter;
+    console.log("jaeger exporter initialized");
+  } else {
+    sdExporter = initStackdriverExporter();
+    if (sdExporter) {
+      exporter = sdExporter
+      console.log("stackdriver exporter initialized");
+    }
   }
 
-  const tracer = tracing.start({
+  if (!exporter) {
+    console.log("no exporter available, skip tracing instrumentation");
+    return;
+  }
+
+  tracing.registerExporter(exporter).start({
     samplingRate: 1,
-  }).tracer;
+  });
 
   const basedir = path.dirname(require.resolve("grpc"));
   const version = require(path.join(basedir, "package.json")).version;
 
   // Enables GRPC plugin: Method that enables the instrumentation patch.
-  plugin.enable(grpc, tracer, version, /** plugin options */ {}, basedir);
+  plugin.enable(
+    grpc,
+    tracing.tracer,
+    version,
+    /** plugin options */ {},
+    basedir
+  );
 
-  tracing.registerExporter(exporter).start();
   console.log("tracing initialized");
 }
 
@@ -122,6 +159,8 @@ function getServer() {
 }
 
 if (require.main === module) {
+  console.log(process.env)
+  
   initTracing();
 
   let addr = process.env.GRPC_LISTEN_ADDR;

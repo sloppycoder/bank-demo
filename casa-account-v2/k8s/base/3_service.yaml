@@ -26,10 +26,6 @@ spec:
           env:
             - name: GRPC_LISTEN_ADDR
               value: "0.0.0.0:50051"
-            - name: JAEGER_AGENT_HOST
-              value: jaeger-agent.istio-system
-            - name: JAEGER_AGENT_PORT
-              value: "6832"
           readinessProbe:
             exec:
               command: ["/grpc_health_probe", "-addr", "127.0.0.1:50051"]
