@@ -10,11 +10,11 @@ spec:
         - destination:
             host: casa-account
             subset: v1
-          weight: 90
+          weight: 50
         - destination:
             host: casa-account
             subset: v2
-          weight: 10
+          weight: 50
 
 ---
 kind: DestinationRule

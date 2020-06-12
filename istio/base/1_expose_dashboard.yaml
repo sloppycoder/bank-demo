@@ -4,6 +4,7 @@ metadata:
   name: bank-gateway
 spec:
   selector:
+    app: istio-ingressgateway
     istio: ingressgateway
   servers:
     - port:
