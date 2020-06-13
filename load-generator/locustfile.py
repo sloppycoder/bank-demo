@@ -1,4 +1,6 @@
+from datetime import datetime
 import grpc
+import random
 import time
 
 from locust import User, TaskSet, between, events, task
@@ -7,21 +9,20 @@ import demo_bank_pb2
 import demo_bank_pb2_grpc
 
 
-def init_tracer():
-    config = Config(
-        config={
-            'sampler': {
-                'type': 'const',
-                'param': 1,
-            },
-            'logging': True,
-            'propagation': 'b3',  # zipkin headers
-        },
-        validate=True,
-        service_name='load-generator')
-    tracer = config.initialize_tracer()
-    interceptor = open_tracing_client_interceptor(tracer, log_payloads=True)
-    return tracer, interceptor
+class DataPool:
+    def __init__(self, file):
+        with open(file, 'r') as f:
+            self.id_pool = [line.rstrip() for line in f.readlines()]
+        self.pool_size = len(self.id_pool)
+
+        random.seed(int(datetime.today().timestamp() * 100))
+
+    def next_id(self):
+        i = random.randrange(0, self.pool_size - 1, 1)
+        return self.id_pool[i]
+
+
+pool = DataPool('ids.txt')
 
 
 class DashboardTask(TaskSet):
@@ -33,7 +34,7 @@ class DashboardTask(TaskSet):
     def get_dashboard(self):
         start_time = time.time()
         try:
-            test_id = self.get_test_id()
+            test_id = pool.next_id()
             req = demo_bank_pb2.GetDashboardRequest(login_name=test_id)
             self.stub.GetDashboard(req)
         except grpc.RpcError as e:
@@ -54,9 +55,6 @@ class DashboardTask(TaskSet):
                 response_length=0,
             )
 
-    def get_test_id(self):
-        return 'user001'
-
 
 class MobileAppUser(User):
     tasks = [DashboardTask]
@@ -64,9 +62,13 @@ class MobileAppUser(User):
 
     def __init__(self, *args, **kwargs):
         super(MobileAppUser, self).__init__(*args, **kwargs)
+        DataPool('ids.txt')
 
 
 if __name__ == '__main__':
+    for i in range(100):
+        print(pool.next_id())
+
     print('''
 This script does not work as a standalone program, please use locust utility instead.
 

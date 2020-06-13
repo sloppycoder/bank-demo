@@ -43,3 +43,6 @@
 gcp/gcloud-config.json
 **/secure-connect-vino9.zip
 
+# test data
+**/ids.txt
+
