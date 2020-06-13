@@ -1,4 +1,4 @@
-import json
+import argparse
 import re
 import sys
 import time
@@ -96,8 +96,10 @@ def populate_testdata(n, force_drop):
 
 
 def drop_and_recreate_table(sess):
-    # drop existing table and recreate a new version
+    # drop existing table and UDT
     sess.execute('DROP TABLE IF EXISTS casa_account')
+    sess.execute('DROP TYPE IF EXISTS balance')
+    # recreate
     sess.execute(''' 
     CREATE TYPE IF NOT EXISTS balance (
         amount float,
@@ -147,13 +149,20 @@ def accounts_in_db(sess):
     else:
         return None
 
+def init_argparse():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v", "--version", action="version",
+        version = f"{parser.prog} version 1.0.0"
+    )
+    parser.add_argument('files', nargs='*')
+    return parser
 
 if __name__ == '__main__':
-    iter = 1
-    if len(sys.argv) > 1:
-        try:
-            iter = int(sys.argv[1])
-        except ValueError:
-            pass
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--drop', action='store_true')
+    parser.add_argument('n', nargs='?', default=1, type=int)
+    args = parser.parse_args()
 
-    populate_testdata(1000, False)
+    print(args)
+    populate_testdata(args.n, args.drop)
