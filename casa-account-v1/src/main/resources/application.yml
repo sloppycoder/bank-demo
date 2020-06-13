@@ -10,3 +10,6 @@ grpc:
 tracing:
   jaeger-endpoint: off
   use-stackdriver: false
+
+cassandra:
+  instance: local

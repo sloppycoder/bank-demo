@@ -5,3 +5,6 @@ micronaut:
 grpc:
   server:
     port: ${random.port}
+
+cassandra:
+  instance: local
