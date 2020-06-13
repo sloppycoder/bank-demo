@@ -83,6 +83,7 @@ def gen_random_accounts(sess, n):
 
 def populate_testdata(n, force_drop):
     sess = create_session('local')
+    sess.execute('use vino9')
     print_db_version(sess)
     if force_drop:
         drop_and_recreate_table(sess)
@@ -127,11 +128,11 @@ def create_session(instance_type):
     if instance_type == 'astra':
         cluster = Cluster(
             cloud={'secure_connect_bundle': '../casa-account-v1/secure-connect-vino9.zip'},
-            auth_provider=PlainTextAuthProvider('vino9', 'vinowine'))
+            auth_provider=PlainTextAuthProvider('vino9', 'not_real_password'))
         return cluster.connect()
     else:
         cluster = Cluster(['127.0.0.1'])
-        return cluster.connect('bank')
+        return cluster.connect('vino9')
 
 
 def print_db_version(sess):
