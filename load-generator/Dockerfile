@@ -14,7 +14,7 @@ RUN pip install --root="/install" -r requirements.txt
 FROM base
 COPY --from=builder /install /
 
-COPY entrypoint.sh *.py /
+COPY entrypoint.sh *.py ids.txt /
 
 EXPOSE 8089
 ENTRYPOINT ./entrypoint.sh
