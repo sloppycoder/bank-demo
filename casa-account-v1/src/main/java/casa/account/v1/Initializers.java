@@ -69,7 +69,7 @@ public class Initializers {
       session =
           CqlSession.builder()
               .addContactPoint(new InetSocketAddress(localCassandraHost, localCassandraPort))
-              .withKeyspace("bank")
+              .withKeyspace("vino9")
               .withLocalDatacenter("Cassandra")
               .build();
     } else {

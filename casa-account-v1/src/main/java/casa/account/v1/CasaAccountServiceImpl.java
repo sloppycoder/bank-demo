@@ -11,6 +11,7 @@ import demo.bank.CasaAccountServiceGrpc;
 import demo.bank.GetCasaAccountRequest;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import io.opencensus.trace.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,7 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
   private static final Logger logger = LoggerFactory.getLogger(CasaAccountServiceImpl.class);
 
   @Inject private CqlSession session;
+  @Inject Tracer tracer; // do not remove this line
 
   public void getAccount(GetCasaAccountRequest req, StreamObserver<CasaAccount> responseObserver) {
     String accountId = req.getAccountId();
