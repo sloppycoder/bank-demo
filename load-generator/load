@@ -3,13 +3,32 @@
 # exit when any command fails
 set -e
 
-DASHBOARD_HOST=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
-
 if [ -z "$USERS" ]; then
     USERS=1
 fi
 
-echo generating load to ${DASHBOARD_HOST}:31400 with $USERS users
+CTX=$(kubectl config current-context)
+case "$CTX" in
+
+    "gke1")
+        DASHBOARD_HOST=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+        DASHBOARD_PORT=31400
+        ;;
+
+    "minikube")
+        DASHBOARD_HOST=$(minikube ip)
+        DASHBOARD_PORT=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.spec.ports[?(@.port=="443")].nodePort}")
+
+        ;;
+
+    "")
+        echo No current kubectl context?...
+        exit 1
+        ;;
+
+esac
+
+echo generating load to ${DASHBOARD_HOST}:${DASHBOARD_PORT} with $USERS users
 
 # activate python venv before running locust
 if [ ! -f venv/bin/activate ]; then
@@ -25,5 +44,5 @@ fi
 
 source  venv/bin/activate
 
-locust --host="${DASHBOARD_HOST}:31400" --headless -u $USERS 
+locust --host="${DASHBOARD_HOST}:${DASHBOARD_PORT}" --headless -u $USERS
 
