@@ -21,19 +21,23 @@ type Server struct {
 func (s *Server) GetDashboard(ctx context.Context, req *pb.GetDashboardRequest) (*pb.Dashboard, error) {
 	log.Info("GetDashboard for user ", req.LoginName)
 
+	dashboard := &pb.Dashboard{
+		Customer: &pb.Customer{
+			LoginName:  req.LoginName,
+			CustomerId: req.LoginName,
+		}}
+
 	casa, err := getCasaAccount(ctx, req.LoginName)
 	if err != nil {
 		// perhaps should retry before returning dummy value?
-		casa = nil
+		dashboard.Casa = []*pb.CasaAccount{}
 		log.Warn("Unable to retrieve account detail")
+	} else {
+		dashboard.Casa = []*pb.CasaAccount{casa}
+		dashboard.Customer.Name = dashboard.Casa[0].Nickname
 	}
 
-	return &pb.Dashboard{
-		Customer: &pb.Customer{
-			LoginName: req.LoginName,
-		},
-		Casa: []*pb.CasaAccount{casa},
-	}, nil
+	return dashboard, nil
 }
 
 // TODO: should probably implement some kind of managed channel for better performance
