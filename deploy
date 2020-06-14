@@ -82,7 +82,10 @@ case "$CTX" in
 
 esac
 
+# creating secret for cassandra database
+kustomize build . | kubectl apply -n $APP_NAMESPACE -f -
 
+# starting services
 start_dashboard
 start_casa_account_v1
 start_casa_account_v2
