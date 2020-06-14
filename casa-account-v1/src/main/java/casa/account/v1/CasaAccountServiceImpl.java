@@ -11,6 +11,8 @@ import demo.bank.CasaAccountServiceGrpc;
 import demo.bank.GetCasaAccountRequest;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import io.opencensus.trace.Annotation;
+import io.opencensus.trace.Span;
 import io.opencensus.trace.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +41,9 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
       String accountId, StreamObserver<CasaAccount> responseObserver) {
     logger.info("Retrieving CasaAccount details for {}", accountId);
 
+    Span span = tracer.spanBuilder("cassandra").startSpan();
+    span.addAnnotation("/db/casa_account/id:" + accountId);
+
     ResultSet rs =
         session.execute(
             SimpleStatement.builder("SELECT * FROM casa_account WHERE account_id = ?")
@@ -46,6 +51,9 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
                 .build());
 
     Row row = rs.one();
+
+    span.end();
+
     if (row == null) {
       responseObserver.onError(
           Status.INVALID_ARGUMENT.withDescription("casa account not found").asException());
