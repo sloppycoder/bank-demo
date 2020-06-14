@@ -65,11 +65,13 @@ case "$CTX" in
 
     "gke1")
         kubectl apply -f istio/envs/gke/namespace.yaml    
+        APP_NAMESPACE=playground
    
         ;;
 
     "minikube")
         kubectl apply -f istio/envs/local/namespace.yaml    
+        APP_NAMESPACE=breeze
    
         ;;
 
@@ -84,15 +86,15 @@ esac
 start_dashboard
 start_casa_account_v1
 start_casa_account_v2
-start_load_generator
 
+if [ "$1" == "--load" ]; then
+  start_load_generator
+fi
 
-echo ===
-echo 
-echo all modules started, run the following command to expose dashboard to external traffic
-echo
-echo cd istio
-echo "kustomize build envs/local | kubectl apply -f -  "
-echo
+cd istio
+./apply
 
+sleep 3
+
+kubectl get pods -n $APP_NAMESPACE
 

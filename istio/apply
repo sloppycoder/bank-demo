@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# exit when any command fails
+set -e
+
+KUSTOMIZE=$(which kustomize)
+
+if [ -z "$KUSTOMIZE" ]; then
+    echo "kustomize not found. please download from https://github.com/kubernetes-sigs/kustomize/releases"
+    exit 1
+fi
+
+CTX=$(kubectl config current-context)
+case "$CTX" in
+
+    "gke1")
+        $KUSTOMIZE build envs/gke | kubectl apply -f -
+
+	sleep 1
+
+        DASHBOARD_HOST=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
+        DASHBOARD_PORT=31400
+
+        ;;
+
+    "minikube")
+        $KUSTOMIZE build envs/local | kubectl apply -f -
+
+	sleep 1
+
+        DASHBOARD_HOST=$(minikube ip)
+        DASHBOARD_PORT=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.spec.ports[?(@.port=="443")].nodePort}")
+        ;;
+
+    "")
+        echo No current kubectl context?...
+        exit 1
+        ;;
+
+esac
+
+echo service should be availabe at ${DASHBOARD_HOST}:${DASHBOARD_PORT}
