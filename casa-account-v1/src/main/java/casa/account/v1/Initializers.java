@@ -2,6 +2,7 @@ package casa.account.v1;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.google.common.collect.ImmutableMap;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Value;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 
@@ -49,19 +51,35 @@ public class Initializers {
   @Value("${cassandra.host:localhost}")
   private String localCassandraHost;
 
-  @Value("${cassandra.host:9042}")
+  @Value("${cassandra.port:9042}")
   private int localCassandraPort;
-
 
   @Bean
   public CqlSession initializeCassandraSession() {
-    logger.info("connect to cassandra instance {}", cassandraInstance);
+    logger.info(
+        "cassandra config instance={}, host={}, port={}, username={}, password={}****",
+        cassandraInstance,
+        localCassandraHost,
+        localCassandraPort,
+        dbUsername,
+        dbPassword.substring(0, 1));
+
+    String cwd = Paths.get(".").toAbsolutePath().normalize().toString();
+    logger.info("CWD={}", cwd);
+
+    // the secure bundle is in the parent directory when running locally outside
+    // K8S environment.
+    // when running inside K8s it is at the /astra directory mounted from a secret
+    String secureBundle = "../secure-connect-vino9.zip";
+    if (!Files.exists(Paths.get(secureBundle).toAbsolutePath())) {
+        secureBundle = "/astra/secure-connect-vino9.zip";
+    }
 
     CqlSession session;
     if ("astra".equalsIgnoreCase(cassandraInstance)) {
       session =
           CqlSession.builder()
-              .withCloudSecureConnectBundle(Paths.get("secure-connect-vino9.zip"))
+              .withCloudSecureConnectBundle(Paths.get(secureBundle))
               .withAuthCredentials(dbUsername, dbPassword)
               .withKeyspace("vino9")
               .build();
@@ -130,7 +148,7 @@ public class Initializers {
     }
 
     Map<String, AttributeValue> attributes =
-        Map.of(
+        ImmutableMap.of(
             "service", AttributeValue.stringAttributeValue(appName),
             "runtime", AttributeValue.stringAttributeValue(System.getProperty("java.version")));
 

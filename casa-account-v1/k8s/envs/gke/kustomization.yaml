@@ -13,12 +13,6 @@ patchesJson6902:
       - op: add
         path: /spec/template/spec/containers/0/env/0
         value: { "name": "TRACING_USE_STACKDRIVER", "value": "yes" }
-      - op: add
-        path: /spec/template/spec/containers/0/env/0
-        value: { "name": "CASSANDRA_INSTANCE", "value": "astra" }
-      - op: add
-        path: /spec/template/spec/containers/0/env/0
-        value: { "name": "CASSANDRA_PASSWORD", "value": "not_real_password" }
 
 # the environment variable name must match application.yml setting
 # in order to override it

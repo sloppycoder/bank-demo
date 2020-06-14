@@ -27,6 +27,31 @@ spec:
           env:
             - name: GRPC_LISTEN_ADDR
               value: ":50051"
+            - name: CASSANDRA_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: cassandra-secret
+                  key: username
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cassandra-secret
+                  key: password
+            - name: CASSANDRA_INSTANCE
+              valueFrom:
+                secretKeyRef:
+                  name: cassandra-secret
+                  key: instance
+            - name: CASSANDRA_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: cassandra-secret
+                  key: host
+            - name: CASSANDRA_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: cassandra-secret
+                  key: port
           resources:
             requests:
               cpu: 250m
@@ -34,6 +59,18 @@ spec:
             limits:
               cpu: 1000m
               memory: 384Mi
+          volumeMounts:
+            - name: astra-secure-bundle
+              mountPath: "/astra"
+              readOnly: true
+      volumes:
+      - name: astra-secure-bundle
+        secret:
+          secretName: cassandra-secret
+          defaultMode: 0400
+          items:
+          - key: secure-connect-vino9.zip
+            path: secure-connect-vino9.zip
 ---
 apiVersion: v1
 kind: Service
