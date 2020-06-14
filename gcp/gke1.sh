@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ -z "${GCP_PROJECT_ID}" ]; then
     GCP_PROJECT_ID=$(gcloud config get-value project)
     echo using default GCP project $GCP_PROJECT_ID
@@ -46,7 +48,7 @@ function deploy_tools {
      
     secret=$(kubectl get secret gcloud-config -o name)
     if [ "$secret" = "" ]; then
-        kubectl create secret generic gcloud-config --from-file=gcp/gcloud-config.json -n default
+        kubectl create secret generic gcloud-config --from-file=gcloud-config.json -n default
     else 
         echo secret already exists
     fi
