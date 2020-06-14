@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+# set -e
 
 if [ -z "${GCP_PROJECT_ID}" ]; then
     GCP_PROJECT_ID=$(gcloud config get-value project)
@@ -45,16 +45,13 @@ sleep 5
 }
 
 function deploy_tools {
-     
-    secret=$(kubectl get secret gcloud-config -o name)
-    if [ "$secret" = "" ]; then
+    if [ -f "gcloud-config.json" ]; then
         kubectl create secret generic gcloud-config --from-file=gcloud-config.json -n default
+        kubectl apply -f ext-dns.yaml -n default
     else 
-        echo secret already exists
+        echo ext-dns not deployed
+        echo did you get a service account key file?
     fi
-    
-    kubectl apply -f ext-dns.yaml -n default
-
 }
 
 
@@ -64,15 +61,15 @@ if [ "$1" = "-f" ]; then
     deploy_tools
 fi
 
+# delete existing gke1 context before retrieving a new one
+kubectl config delete-context ${CLUSTER_NAME}
 gcloud container clusters get-credentials ${CLUSTER_NAME}
-
-OUTPUT=$(kubectl config get-contexts -o name | grep ${CLUSTER_NAME} | head -1)
+OUTPUT=$(kubectl config get-contexts -o name | grep ${CLUSTER_NAME} | sort | head -1)
 
 if [ -z "$OUTPUT" ]; then
     echo Unable to get kubectl contexts, something is wrong...
     exit 1
 fi
 
-kubectl config delete-context ${CLUSTER_NAME}
 kubectl config rename-context ${OUTPUT} ${CLUSTER_NAME}
 kubectl config get-contexts
