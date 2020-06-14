@@ -25,7 +25,7 @@ spec:
   hosts:
     - "*"
   gateways:
-    - istio-system/istio-ingressgateway
+    - bank-gateway
   http:
     - match:
         - port: 80
