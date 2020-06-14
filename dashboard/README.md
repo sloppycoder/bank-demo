@@ -1,10 +1,4 @@
-# demo microservice for banking application
+# dashboard service written in Go
 
-A demo banking application that uses
-* [Kubernetes](https://kubernetes.io)
-* [Istio](https://istio.io)
-* [gRPC](https://grpc.io/)
+It uses gRPC and opencensus. The trace can be configured to sent to either Jaeger when running locally or to stackdriver when running in GKE.
 
-...more descriptions later...
-
-![arch diagram](docs/architecture.png "Architecture Diagram")
