@@ -17,7 +17,7 @@ case "$CTX" in
 
     "minikube")
         DASHBOARD_HOST=$(minikube ip)
-        DASHBOARD_PORT=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.spec.ports[?(@.port=="443")].nodePort}")
+        DASHBOARD_PORT=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.spec.ports[?(@.port=="31400")].nodePort}")
 
         ;;
 
