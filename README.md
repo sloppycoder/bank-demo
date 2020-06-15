@@ -11,10 +11,10 @@ This is a demo banking applicaiton built around these key technologies:
 
 
 The key pillars of this application are:
-* Self-contained [microservices](https://microservices.io/patterns/microservices.html) deployed into Kubernetes
+* Self-contained [microservices](https://microservices.io/patterns/microservices.html) deployed into [Kubernetes](https://kubernetes.io)
 * [Polyglot](https://en.wikipedia.org/wiki/Polyglot_(computing)) applicatoin with microservices written in different languages, but all have the same observability and intercommunicate over standard network protocols.
-* Use Istio service mesh to perform traffic management within and inter kubernetes clusters
-* High performance inter microservice communication with gRPC. The gRPC services can be directly exposed to external client or use [Envoy gRPC-Web filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_web_filter) for clients that do not support HTTP/2 natively.
+* Use [Istio](https://istio.io) service mesh to perform traffic management within and inter kubernetes clusters
+* High performance inter microservice communication with [gRPC](https://grpc.io). The gRPC services can be directly exposed to external client or use [Envoy gRPC-Web filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_web_filter) for clients that do not support HTTP/2 natively.
 
 
 ## Modules in this repo
@@ -52,7 +52,8 @@ Google Kubernetes Engine
 ### Roadmap
 1. better integration of logging and tracing. ability to navigate from trace to log with high accuracy.
 2. use an external OpenID Connect provide for authentication.
-3. use Istio for oauth token validation and inter microservice communication.
+3. use Istio for oauth token validation 
+4  enable mTLS for inter microservice communication.
 
 
 
