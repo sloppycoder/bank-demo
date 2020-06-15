@@ -1,8 +1,9 @@
 import argparse
+import configparser
+import datetime
 import re
 import sys
 import time
-import datetime
 from mimesis import Generic, random
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
@@ -82,7 +83,7 @@ def gen_random_accounts(sess, n):
 
 
 def populate_testdata(n, force_drop):
-    sess = create_session('local')
+    sess = create_session()
     sess.execute('use vino9')
     print_db_version(sess)
     if force_drop:
@@ -124,15 +125,27 @@ def drop_and_recreate_table(sess):
     ''')
 
 
-def create_session(instance_type):
-    if instance_type == 'astra':
+def read_env(env: str) -> dict:
+    with open(env, 'r') as f:
+        config_string = '[root]\n' + f.read()
+    config = configparser.ConfigParser()
+    config.read_string(config_string)
+    return dict([(k, config.get('root', k)) for k in config.options('root')])
+
+
+def create_session():
+    config = read_env('../cassandra.env')
+    if config['instance'] == 'astra':
         cluster = Cluster(
-            cloud={'secure_connect_bundle': '../casa-account-v1/secure-connect-vino9.zip'},
-            auth_provider=PlainTextAuthProvider('vino9', 'not_real_password'))
+            cloud={'secure_connect_bundle': '../secure-connect-vino9.zip'},
+            auth_provider=PlainTextAuthProvider(config['username'], config['password']))
         return cluster.connect()
-    else:
-        cluster = Cluster(['127.0.0.1'])
+    elif config['instance'] == 'local':
+        cluster = Cluster([config['host']], port=int(config['port']))
         return cluster.connect('vino9')
+    else:
+        print('unknown cassandra instance ${config["instance"]}, abort.')
+        sys.exit(1)
 
 
 def print_db_version(sess):
@@ -150,14 +163,16 @@ def accounts_in_db(sess):
     else:
         return None
 
+
 def init_argparse():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-v", "--version", action="version",
-        version = f"{parser.prog} version 1.0.0"
+        version=f"{parser.prog} version 1.0.0"
     )
     parser.add_argument('files', nargs='*')
     return parser
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
