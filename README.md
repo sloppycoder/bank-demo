@@ -41,7 +41,6 @@ Local Minikue
 Google Kubernetes Engine
  * Kubernetes provisioned using [regular channel provided by GKE](https://cloud.google.com/kubernetes-engine/docs/release-notes-regular), v1.16.8-gke.15 as of now
  * Istio is provisioned as a feature of GKE cluster, 1.4.6-gke.0 as of now
- * [kustomize](https://github.com/kubernetes-sigs/kustomize) 3.5.4
  * [Datastax Astra](https://www.datastax.com/products/datastax-astra) running in GCP
 
 Development Tools:
