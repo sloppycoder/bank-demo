@@ -43,6 +43,7 @@
 gcp/gcloud-config.json
 /secure-connect-vino9.zip
 /cassandra.env
+/cassandra.env.*
 
 # test data
 **/ids*.txt
