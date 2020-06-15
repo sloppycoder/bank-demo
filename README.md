@@ -38,22 +38,22 @@ Local Minikue
 * [minikube](https://kubernetes.io/docs/setup/learning-environment/minikube/) v1.11.0
 * Kubernetes 1.16.9
 * Istio 1.5.2
-* [kustomize](https://github.com/kubernetes-sigs/kustomize) 3.5.4
-* [skaffold](https://skaffold.dev) v1.10.1
 * [Apache Cassandra](https://cassandra.apache.org/) version 4.0.0
 
 Google Kubernetes Engine
- * Kubernetes v1.16.8-gke.15 [regular channel](https://cloud.google.com/kubernetes-engine/docs/release-notes-regular) provided by GKE.
- * Istio 1.4.6-gke.0, provisioned as a feature of GKE cluster
+ * Kubernetes provisioned using [regular channel provided by GKE](https://cloud.google.com/kubernetes-engine/docs/release-notes-regular), v1.16.8-gke.15 as of now
+ * Istio is provisioned as a feature of GKE cluster, 1.4.6-gke.0 as of now
  * [kustomize](https://github.com/kubernetes-sigs/kustomize) 3.5.4
- * [skaffold](https://skaffold.dev) v1.10.1
- * [Apache Cassandra](https://cassandra.apache.org/) version 4.0.0
+ * [Datastax Astra](https://www.datastax.com/products/datastax-astra) running in GCP
+
+Development Tools:
+* [kustomize](https://github.com/kubernetes-sigs/kustomize) 3.5.4
+* [skaffold](https://skaffold.dev) v1.10.1
 
 ### Roadmap
 1. better integration of logging and tracing. ability to navigate from trace to log with high accuracy.
 2. use an external OpenID Connect provide for authentication.
-3. use Istio for oauth token validation 
-4  enable mTLS for inter microservice communication.
-
+3. enable mTLS for inter microservice communication.
+4. use Istio for oauth token validation
 
 
