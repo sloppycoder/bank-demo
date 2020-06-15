@@ -1,20 +1,18 @@
 # A modern microservice based application  
 
-This is a demo banking applicaiton built around these key technologies:
+This is a demo banking applicaiton built around modern technolgies. The key pillars of this application are:
+* Self-contained [microservices](https://microservices.io/patterns/microservices.html) deployed into [Kubernetes](https://kubernetes.io)
+* [Polyglot](https://en.wikipedia.org/wiki/Polyglot_(computing)) applicatoin with microservices written in different languages and communicate with each other over standard network protocols.
+* Every microservice supports observability with metrics and distributed tracing. Use [opencensus](https://opencensus.io/) and [Prometheus](https://prometheus.io/) to be compatbile with both on-premise stack with [Jaeger](https://www.jaegertracing.io/), [Prometheus](https://prometheus.io/) and [Elastic](https://www.elastic.co/); or [Stackdriver](https://cloud.google.com/products/operations) in GCP.
+* Use [Istio](https://istio.io) service mesh to perform traffic management within and inter kubernetes clusters
+* High performance inter microservice communication with [gRPC](https://grpc.io). The gRPC services can be directly exposed to external client or use [Envoy gRPC-Web filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_web_filter) for clients that do not support HTTP/2 natively.
 
-* [Kubernetes](https://kubernetes.io)
-* [Istio](https://istio.io)
-* [gRPC](https://grpc.io)
-* [opencensus](https://opencensus.io/)
+
 
 ![architecture diagram](doc/architecture.png)
 
 
-The key pillars of this application are:
-* Self-contained [microservices](https://microservices.io/patterns/microservices.html) deployed into [Kubernetes](https://kubernetes.io)
-* [Polyglot](https://en.wikipedia.org/wiki/Polyglot_(computing)) applicatoin with microservices written in different languages, but all have the same observability and intercommunicate over standard network protocols.
-* Use [Istio](https://istio.io) service mesh to perform traffic management within and inter kubernetes clusters
-* High performance inter microservice communication with [gRPC](https://grpc.io). The gRPC services can be directly exposed to external client or use [Envoy gRPC-Web filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/grpc_web_filter) for clients that do not support HTTP/2 natively.
+
 
 
 ## Modules in this repo
