@@ -87,6 +87,7 @@ public class Initializers {
       session =
           CqlSession.builder()
               .addContactPoint(new InetSocketAddress(localCassandraHost, localCassandraPort))
+              .withAuthCredentials(dbUsername, dbPassword)
               .withKeyspace("vino9")
               .withLocalDatacenter("Cassandra")
               .build();
