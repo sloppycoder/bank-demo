@@ -5,11 +5,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: load-generator
+      job: load-generator
   template:
     metadata:
       labels:
-        app: load-generator
+        job: load-generator
     spec:
       containers:
         - name: locust
