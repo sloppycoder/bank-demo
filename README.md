@@ -13,8 +13,6 @@ This is a demo banking applicaiton built around modern technolgies. The key pill
 
 
 
-
-
 ## Modules in this repo
 
 | Directory     | Conent      |
@@ -34,8 +32,8 @@ The code in this repo has been tested with minikube and GKE. Details below
 Local Minikue
 * Ubuntu Linux 20.04
 * [minikube](https://kubernetes.io/docs/setup/learning-environment/minikube/) v1.11.0
-* Kubernetes 1.16.9
-* Istio 1.5.2
+* Kubernetes 1.16.8
+* Istio 1.4.8
 * [Apache Cassandra](https://cassandra.apache.org/) version 4.0.0
 
 Google Kubernetes Engine
@@ -46,6 +44,68 @@ Google Kubernetes Engine
 Development Tools:
 * [kustomize](https://github.com/kubernetes-sigs/kustomize) 3.5.4
 * [skaffold](https://skaffold.dev) v1.10.1
+
+### Run with minikube
+Below are steps tesed on Ubutnu Bionic and Focal, should work on other linux flavors too.
+
+Get prerequites first
+1. [Install minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/)
+2. Download Istio from 1.4.8 from [Istio release pages from Github](https://github.com/istio/istio/releases/)
+3. [Install Skaffold](https://skaffold.dev/docs/install/) 
+4. Get Evans gRPC utility from [Github release pages](https://github.com/ktr0731/evans/releases)
+
+first, then
+```
+#
+# the k8s and istio versions below matches to versions in GKE's regular channel
+#
+
+# start minikube. for 
+minikube start \
+   --driver=kvm2 \
+   --disk-size='30000mb' \
+   --cpus='2' \
+   --memory='10000mb' \
+   --kubernetes-version='1.16.8'
+
+# install istio with auto mTLS enabled
+cd istio-1.4.8
+bin/istioctl manifest apply --set profile=demo \
+  --set values.global.mtls.auto=true \
+  --set values.global.mtls.enabled=true\n
+
+# expose port 31400 for use grpc services
+# this port is enabled on GCP and later versions of Istio
+
+kubectl edit svc istio-ingressgateway -n istio-system   
+
+# find the ports and insert the snippet below
+  - name: tcp
+    port: 31400
+    protocol: TCP
+    targetPort: 31400
+
+
+# come back to this directory and run all the services 
+# the script should build and start microservices
+./deploy
+
+# test
+cd load-generator
+# run evans to send 1 single request
+./e
+
+# you should see output similiar to the one below
+{
+  "customer": {
+    "customerId": "10001000",
+    "loginName": "10001000"
+  }
+}
+
+```
+
+
 
 ### Roadmap
 1. better integration of logging and tracing. ability to navigate from trace to log with high accuracy.
