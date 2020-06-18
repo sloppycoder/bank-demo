@@ -1,4 +1,3 @@
 resources:
-  - 2_rbac.yaml
   - 3_deployment.yaml
 
