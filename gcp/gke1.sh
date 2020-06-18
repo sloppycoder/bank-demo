@@ -55,7 +55,7 @@ function deploy_tools {
 }
 
 
-if [ "$1" = "-f" ]; then
+if [ "$1" = "--create" ]; then
     echo creating cluster $CLUSTER_NAME 
     create_cluster
     deploy_tools
@@ -68,6 +68,7 @@ OUTPUT=$(kubectl config get-contexts -o name | grep ${CLUSTER_NAME} | sort | hea
 
 if [ -z "$OUTPUT" ]; then
     echo Unable to get kubectl contexts, something is wrong...
+    echo to create a new cluster, use --create option
     exit 1
 fi
 

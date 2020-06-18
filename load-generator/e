@@ -15,8 +15,11 @@ get_ingress_addr
 
 [ -z "$DEMOBANK_PORT" ] && exit 1
 
-echo calling gRPC service at ${DEMOBANK_HOST}:${DEMOBANK_PORT}
-echo '{ "login_name": "10001000" }' | $EVANS \
+ACCOUNT_ID=$1
+[ -z "$ACCOUNT_ID" ] && ACCOUNT_ID="10001000"
+
+echo calling gRPC service at ${DEMOBANK_HOST}:${DEMOBANK_PORT} with account_id = ${ACCOUNT_ID}
+echo { \"login_name\": \"${ACCOUNT_ID}\" } | $EVANS \
          --proto ../protos/demo_bank.proto   \
          --host $DEMOBANK_HOST \
          --port $DEMOBANK_PORT \
