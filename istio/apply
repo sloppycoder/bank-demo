@@ -10,33 +10,28 @@ if [ -z "$KUSTOMIZE" ]; then
     exit 1
 fi
 
-CTX=$(kubectl config current-context)
+MODE=apply
+if [ "$1" == "--delete" ]; then
+    MODE=delete
+fi
+
+source ../common.sh
+get_ingress_addr
+
 case "$CTX" in
 
     "gke1")
-        $KUSTOMIZE build envs/gke | kubectl apply -f -
-
-	sleep 1
-
-        DASHBOARD_HOST=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
-        DASHBOARD_PORT=31400
-
+        $KUSTOMIZE build envs/gke | kubectl $MODE -f -
         ;;
 
     "minikube")
-        $KUSTOMIZE build envs/local | kubectl apply -f -
-
-	sleep 1
-
-        DASHBOARD_HOST=$(minikube ip)
-        DASHBOARD_PORT=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.spec.ports[?(@.port=="443")].nodePort}")
+        $KUSTOMIZE build envs/local | kubectl $MODE -f -
         ;;
 
     "")
-        echo No current kubectl context?...
         exit 1
         ;;
-
+        
 esac
 
-echo service should be availabe at ${DASHBOARD_HOST}:${DASHBOARD_PORT}
+echo service should be availabe at ${DEMOBANK_HOST}:${DEMOBANK_PORT}

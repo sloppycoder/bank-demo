@@ -10,27 +10,16 @@ if [ -z "$EVANS" ]; then
     exit 1
 fi
 
-CTX=$(kubectl config current-context)
-case "$CTX" in
+source ../common.sh
+get_ingress_addr
 
-    "gke1")
-        DASHBOARD_HOST=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.status.loadBalancer.ingress[*].ip}")
-        DASHBOARD_PORT=31400
-        ;;
+[ -z "$DEMOBANK_PORT" ] && exit 1
 
-    "minikube")
-        DASHBOARD_HOST=$(minikube ip)
-        DASHBOARD_PORT=$(kubectl get svc istio-ingressgateway -n istio-system -o jsonpath="{.spec.ports[?(@.port=="31400")].nodePort}")
-
-        ;;
-
-    "")
-        echo No current kubectl context?...
-        exit 1
-        ;;
-
-esac
-
-
-echo calling gRPC service at ${DASHBOARD_HOST}:$DASHBOARD_PORT
-echo '{ "login_name": "10001000" }' | $EVANS --proto ../protos/demo_bank.proto   --host $DASHBOARD_HOST --port $DASHBOARD_PORT cli call demobank.api.DashboardService.GetDashboard
+echo calling gRPC service at ${DEMOBANK_HOST}:${DEMOBANK_PORT}
+echo '{ "login_name": "10001000" }' | $EVANS \
+         --proto ../protos/demo_bank.proto   \
+         --host $DEMOBANK_HOST \
+         --port $DEMOBANK_PORT \
+         cli \
+         call \
+         demobank.api.DashboardService.GetDashboard

@@ -59,28 +59,23 @@ if [ "$1" = "--minikube" ]; then
     exit 0
 fi
 
+source common.sh
+get_ingress_addr
 
-CTX=$(kubectl config current-context)
-case "$CTX" in
+[ -z "$CTX" ] && exit 1
 
-    "gke1")
-        kubectl apply -f istio/envs/gke/namespace.yaml    
-        APP_NAMESPACE=playground
-   
-        ;;
+if [ "$CTX" = "gke1" ]; then
+    APP_ENV=gke
+else 
+    APP_ENV=local
+fi
 
-    "minikube")
-        kubectl apply -f istio/envs/local/namespace.yaml    
-        APP_NAMESPACE=breeze
-   
-        ;;
-
-    "")
-        echo No current kubectl context?...
-        exit 1
-        ;;
-
-esac
+# create namespace for deploying the demo app
+APP_NAMESPACE=$(kubectl apply -f istio/envs/${APP_ENV}/namespace.yaml -o name | cut -d '/' -f 2)
+if [ -z "$APP_NAMESPACE" ]; then
+    echo unable to create namespace using env $APP_ENV
+    exit 1
+fi
 
 # creating secret for cassandra database
 kustomize build . | kubectl apply -n $APP_NAMESPACE -f -
@@ -91,13 +86,11 @@ start_casa_account_v1
 start_casa_account_v2
 
 if [ "$1" == "--load" ]; then
-  start_load_generator
+    start_load_generator
 fi
 
 cd istio
 ./apply
-
-sleep 3
 
 kubectl get pods -n $APP_NAMESPACE
 
