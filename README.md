@@ -65,37 +65,30 @@ minikube start \
    --driver=kvm2 \
    --disk-size='30000mb' \
    --cpus='2' \
-   --memory='10000mb' \
+   --memory='12000mb' \
    --kubernetes-version='1.16.8'
 
 # install istio with auto mTLS enabled
 cd istio-1.4.8
 bin/istioctl manifest apply --set profile=demo \
   --set values.global.mtls.auto=true \
-  --set values.global.mtls.enabled=true\n
+  --set values.global.mtls.enabled=true
+
+# istio takes sometime to get installed, wait till all the 
+# pods are in Running status
 
 # expose port 31400 for use grpc services
 # this port is enabled on GCP and later versions of Istio
+kubectl patch svc istio-ingressgateway -n istio-system \
+--type='json' \
+-p='[{"op":"add","path":"/spec/ports/0",  value: {"name": "tcp", "port":31400,"targetPort":31400, "protocol":"TCP"}}]'
 
-kubectl edit svc istio-ingressgateway -n istio-system   
-
-# find the ports and insert the snippet below
-  - name: tcp
-    port: 31400
-    protocol: TCP
-    targetPort: 31400
-
-
+#
 # come back to this directory and run all the services 
 # the script should build and start microservices
 ./deploy
 
-# test
-cd load-generator
-# run evans to send 1 single request
-./e
-
-# you should see output similiar to the one below
+# if all goes well, you should see output similiar to the one below
 {
   "customer": {
     "customerId": "10001000",
