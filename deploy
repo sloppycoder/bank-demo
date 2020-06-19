@@ -94,3 +94,10 @@ cd istio
 kubectl config set-context $CTX --namespace $APP_NAMESPACE
 kubectl get pods
 
+echo
+echo sending a test request to endpoint
+cd ../load-generator
+./e
+
+cd ..
+
