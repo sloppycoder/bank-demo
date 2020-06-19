@@ -11,7 +11,6 @@ import demo.bank.CasaAccountServiceGrpc;
 import demo.bank.GetCasaAccountRequest;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import io.opencensus.trace.Annotation;
 import io.opencensus.trace.Span;
 import io.opencensus.trace.Tracer;
 import org.slf4j.Logger;
