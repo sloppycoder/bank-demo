@@ -33,7 +33,7 @@ gcloud beta container clusters create "${CLUSTER_NAME}" \
 --subnetwork "projects/${GCP_PROJECT_ID}/regions/us-east1/subnetworks/default" \
 --no-enable-master-authorized-networks \
 --addons HorizontalPodAutoscaling,HttpLoadBalancing,Istio,ApplicationManager \
---istio-config auth=MTLS_PERMISSIVE \
+--istio-config auth=MTLS_STRICT \
 --enable-autoupgrade \
 --enable-autorepair \
 --max-surge-upgrade 1 \

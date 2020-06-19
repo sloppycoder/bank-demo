@@ -1,5 +1,5 @@
 ## TODOs:
-1. enable mTLS between services and setup rules for proper access control (isto 1.5 and 1.4 has different APIs)
+1. enable mTLS between services and setup rules for proper access control (isto 1.5 and 1.4 has different APIs). done (swtiched to 1.4.8 on minikube)
 2. add logic to correlate log to trace entries, both for stackdriver and jaeger/elastic
 3. oauth token for gRPC service call
 4. setup istio authentication rules to examine oauth header for gRPC call

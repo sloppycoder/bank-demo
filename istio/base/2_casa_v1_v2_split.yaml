@@ -23,6 +23,9 @@ metadata:
   name: casa-account
 spec:
   host: casa-account
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
   subsets:
     - labels:
         version: v1
