@@ -7,13 +7,9 @@ function create_minikube {
     minikube start \
     --driver=kvm2 \
     --disk-size='50000mb' \
-    --cpus='4' \
+    --cpus='2' \
     --memory='16384mb' \
-    --kubernetes-version='1.16.9' 
-
-    sleep 5
-
-    minikube addons enable metallb
+    --kubernetes-version='1.16.8' 
 }
 
 function start_dashboard {
@@ -51,7 +47,10 @@ if [ "$1" = "--minikube" ]; then
     echo 
     echo now manually install istio to minikube, e.g.
     echo
-    echo     istioctl manifest apply --set profile=demo --set values.tracing.enabled=true --set values.pilot.traceSampling=100
+    echo istioctl manifest apply \
+    echo      --set profile=demo \
+    echo      --set values.global.mtls.auto=true \
+    echo      --set values.global.mtls.enabled=true
     echo
     echo wait a while for istio to finish install and stabalizes, 
     echo then rerun this script without --minikube flag to install demo application
@@ -92,5 +91,6 @@ fi
 cd istio
 ./apply
 
-kubectl get pods -n $APP_NAMESPACE
+kubectl config set-context $CTX --namespace $APP_NAMESPACE
+kubectl get pods
 
