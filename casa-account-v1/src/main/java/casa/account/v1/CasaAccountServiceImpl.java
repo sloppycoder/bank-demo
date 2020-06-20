@@ -38,7 +38,6 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
         .addAnnotation(String.format("casa-account.get_account.account_id=%s", accountId));
 
     retrieveAccountFromDB(accountId, responseObserver);
-    responseObserver.onCompleted();
   }
 
   private void retrieveAccountFromDB(
@@ -59,6 +58,8 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
     span.end();
 
     if (row == null) {
+      logger.info("casa account {} not found", accountId);
+
       responseObserver.onError(
           Status.INVALID_ARGUMENT.withDescription("casa account not found").asException());
       return;
@@ -86,5 +87,6 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
             .build();
 
     responseObserver.onNext(account);
+    responseObserver.onCompleted();
   }
 }
