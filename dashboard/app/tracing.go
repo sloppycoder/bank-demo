@@ -62,7 +62,7 @@ func initStackdriverExporter() *stackdriver.Exporter {
 			ProjectID: "vino9-276317",
 			DefaultTraceAttributes: map[string]interface{}{
 				"runtime": runtime.Version(),
-				"service":     "dashboard",
+				"service": "dashboard",
 			},
 		})
 		if err == nil {

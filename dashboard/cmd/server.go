@@ -1,18 +1,10 @@
 package main
 
 import (
-	"go.opencensus.io/plugin/ocgrpc"
-	"go.opencensus.io/stats/view"
+	"dashboard/app"
+	log "github.com/sirupsen/logrus"
 	"net"
 	"os"
-	"time"
-
-	api "dashboard/api"
-	app "dashboard/app"
-	log "github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
-	health "google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/reflection"
 )
 
 func startServer() {
@@ -28,21 +20,10 @@ func startServer() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	view.SetReportingPeriod(60 * time.Second)
-	if err := view.Register(ocgrpc.DefaultServerViews...); err != nil {
-		log.Warn("Unable to register views for stats ", err)
-	}
-
-	s := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
-	svc := &app.Server{}
-	api.RegisterDashboardServiceServer(s, svc)
-	health.RegisterHealthServer(s, svc)
-	reflection.Register(s)
-
+	s, _ := app.InitGrpcServer()
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}
-
 }
 
 func main() {

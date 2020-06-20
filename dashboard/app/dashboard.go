@@ -2,27 +2,35 @@ package app
 
 import (
 	"context"
-	pb "dashboard/api"
+	api "dashboard/api"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/plugin/ocgrpc"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	health "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 	"os"
 	"time"
 )
 
 type Server struct {
-	pb.UnimplementedDashboardServiceServer
+	api.UnimplementedDashboardServiceServer
 }
 
 // GetDashboard implements DashboardService.GetDashboard
-func (s *Server) GetDashboard(ctx context.Context, req *pb.GetDashboardRequest) (*pb.Dashboard, error) {
-	log.Info("GetDashboard for user ", req.LoginName)
+func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest) (*api.Dashboard, error) {
+	user := req.LoginName
+	log.Info("GetDashboard for user ", user)
 
-	dashboard := &pb.Dashboard{
-		Customer: &pb.Customer{
+	span := trace.FromContext(ctx)
+	span.AddAttributes(
+		trace.StringAttribute("get_dashboard.login_name", user))
+
+	dashboard := &api.Dashboard{
+		Customer: &api.Customer{
 			LoginName:  req.LoginName,
 			CustomerId: req.LoginName,
 		}}
@@ -30,10 +38,10 @@ func (s *Server) GetDashboard(ctx context.Context, req *pb.GetDashboardRequest) 
 	casa, err := getCasaAccount(ctx, req.LoginName)
 	if err != nil {
 		// perhaps should retry before returning dummy value?
-		dashboard.Casa = []*pb.CasaAccount{}
+		dashboard.Casa = []*api.CasaAccount{}
 		log.Warn("Unable to retrieve account detail")
 	} else {
-		dashboard.Casa = []*pb.CasaAccount{casa}
+		dashboard.Casa = []*api.CasaAccount{casa}
 		dashboard.Customer.Name = dashboard.Casa[0].Nickname
 	}
 
@@ -51,7 +59,7 @@ func initCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
 		grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
 }
 
-func getCasaAccount(ctx context.Context, accountId string) (*pb.CasaAccount, error) {
+func getCasaAccount(ctx context.Context, accountId string) (*api.CasaAccount, error) {
 	conn, err := initCasaConnection(ctx)
 	if err != nil {
 		return nil, err
@@ -59,11 +67,11 @@ func getCasaAccount(ctx context.Context, accountId string) (*pb.CasaAccount, err
 
 	defer conn.Close()
 
-	c := pb.NewCasaAccountServiceClient(conn)
+	c := api.NewCasaAccountServiceClient(conn)
 	subctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
-	r, err := c.GetAccount(subctx, &pb.GetCasaAccountRequest{AccountId: accountId})
+	r, err := c.GetAccount(subctx, &api.GetCasaAccountRequest{AccountId: accountId})
 	if err != nil {
 		log.Warn("unable to retrieve CasaAccount detail", err)
 		return r, err
@@ -72,11 +80,26 @@ func getCasaAccount(ctx context.Context, accountId string) (*pb.CasaAccount, err
 	return r, nil
 }
 
-// implement grpc health check protocol.
-func (s *Server) Check(ctx context.Context, req *healthpb.HealthCheckRequest) (*healthpb.HealthCheckResponse, error) {
-	return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_SERVING}, nil
+func InitGrpcServer() (*grpc.Server, error) {
+	view.SetReportingPeriod(60 * time.Second)
+	if err := view.Register(ocgrpc.DefaultServerViews...); err != nil {
+		log.Warn("Unable to register views for stats ", err)
+	}
+
+	s := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
+	svc := &Server{}
+	api.RegisterDashboardServiceServer(s, svc)
+	health.RegisterHealthServer(s, svc)
+	reflection.Register(s)
+
+	return s, nil
 }
 
-func (s *Server) Watch(req *healthpb.HealthCheckRequest, ws healthpb.Health_WatchServer) error {
+// implement grpc health check protocol.
+func (s *Server) Check(ctx context.Context, req *health.HealthCheckRequest) (*health.HealthCheckResponse, error) {
+	return &health.HealthCheckResponse{Status: health.HealthCheckResponse_SERVING}, nil
+}
+
+func (s *Server) Watch(req *health.HealthCheckRequest, ws health.Health_WatchServer) error {
 	return status.Errorf(codes.Unimplemented, "health check via Watch not implemented")
 }
