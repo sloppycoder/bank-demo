@@ -4,7 +4,7 @@
 3. oauth token for gRPC service call
 4. setup istio authentication rules to examine oauth header for gRPC call
 5. expose metrics from microservice and send to both stackdriber and prometheus. (can we get away with using istio metrics as proxy for app metrics, so that app can skip metrics logic...?)
-6. log gRPC call service paremeter using opencensus. (is this possible?)
+6. log gRPC call service paremeter using opencensus. (possible in Python, not sure about Java and Go)
 7. write new customer service (python?)
 8. configure egress-gateway for outgoing configuration to database (does not work in minikube)
 9. upgrade testdata module's python cassandra driver to solve tls issue on Ubuntu Linux
