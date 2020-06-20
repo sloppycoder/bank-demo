@@ -35,10 +35,11 @@ dependencies {
     implementation "com.datastax.oss:java-driver-mapper-processor:4.6.1"
     // health and reflections gRPC services
     implementation "io.grpc:grpc-services:1.26.0"
-    // output log in JSON format
-    runtimeOnly "ch.qos.logback:logback-classic:1.2.3"
-    runtimeOnly "ch.qos.logback.contrib:logback-json-classic:0.1.5"
-    runtimeOnly "ch.qos.logback.contrib:logback-jackson:0.1.5"
+    // use log4j2 which supports JSON output and opencensus integration
+    runtimeOnly "org.apache.logging.log4j:log4j-core:2.12.1"
+    runtimeOnly "org.apache.logging.log4j:log4j-api:2.12.1"
+    runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:2.12.1"
+    runtimeOnly "io.opencensus:opencensus-contrib-log-correlation-log4j2:0.26.0"
 
     testAnnotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"
