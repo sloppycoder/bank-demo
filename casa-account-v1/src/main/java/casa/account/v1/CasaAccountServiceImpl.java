@@ -28,10 +28,15 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
   private static final Logger logger = LoggerFactory.getLogger(CasaAccountServiceImpl.class);
 
   @Inject private CqlSession session;
-  @Inject Tracer tracer; // do not remove this line
+  @Inject Tracer tracer;
 
   public void getAccount(GetCasaAccountRequest req, StreamObserver<CasaAccount> responseObserver) {
     String accountId = req.getAccountId();
+
+    tracer
+        .getCurrentSpan()
+        .addAnnotation(String.format("casa-account.get_account.account_id=%s", accountId));
+
     retrieveAccountFromDB(accountId, responseObserver);
     responseObserver.onCompleted();
   }
@@ -40,8 +45,8 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
       String accountId, StreamObserver<CasaAccount> responseObserver) {
     logger.info("Retrieving CasaAccount details for {}", accountId);
 
-    Span span = tracer.spanBuilder("cassandra").startSpan();
-    span.addAnnotation("/db/casa_account/id:" + accountId);
+    Span span = tracer.spanBuilder("Cassandra.query").startSpan();
+    span.addAnnotation(String.format("casa-account.get_account.account_id=%s", accountId));
 
     ResultSet rs =
         session.execute(
