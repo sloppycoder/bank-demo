@@ -86,7 +86,6 @@ public class TracingFactory {
     try {
       StackdriverTraceExporter.createAndRegister(
           StackdriverTraceConfiguration.builder()
-              .setProjectId("vino9-276317")
               .setFixedAttributes(attributes)
               .build());
     } catch (IOException e) {
