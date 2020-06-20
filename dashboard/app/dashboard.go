@@ -21,12 +21,32 @@ type Server struct {
 	api.UnimplementedDashboardServiceServer
 }
 
+// helper for logging with trace and span id
+func info(ctx context.Context, args ...interface{}) {
+	if span := trace.FromContext(ctx); span != nil {
+		log.WithFields(log.Fields{
+			"traceId": span.SpanContext().TraceID.String(),
+			"spanId":  span.SpanContext().SpanID.String(),
+		}).Info(args)
+	}
+}
+
+func warn(ctx context.Context, args ...interface{}) {
+	if span := trace.FromContext(ctx); span != nil {
+		log.WithFields(log.Fields{
+			"traceId": span.SpanContext().TraceID.String(),
+			"spanId":  span.SpanContext().SpanID.String(),
+		}).Warn(args)
+	}
+}
+
 // GetDashboard implements DashboardService.GetDashboard.
 func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest) (*api.Dashboard, error) {
-	user := req.LoginName
-	log.Info("GetDashboard for user ", user)
-
 	span := trace.FromContext(ctx)
+
+	user := req.LoginName
+	info(ctx, "2. GetDashboard for user ", user)
+
 	span.AddAttributes(
 		trace.StringAttribute("get_dashboard.login_name", user))
 
@@ -41,7 +61,7 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 		// perhaps should retry before returning dummy value?
 		dashboard.Casa = []*api.CasaAccount{}
 
-		log.Warn("Unable to retrieve account detail")
+		warn(ctx, "Unable to retrieve account detail")
 	} else {
 		dashboard.Casa = []*api.CasaAccount{casa}
 		dashboard.Customer.Name = dashboard.Casa[0].Nickname
@@ -75,7 +95,7 @@ func getCasaAccount(ctx context.Context, accountId string) (*api.CasaAccount, er
 
 	r, err := c.GetAccount(subctx, &api.GetCasaAccountRequest{AccountId: accountId})
 	if err != nil {
-		log.Warn("unable to retrieve CasaAccount detail", err)
+		warn(subctx, "unable to retrieve CasaAccount detail", err)
 		return r, err
 	}
 
