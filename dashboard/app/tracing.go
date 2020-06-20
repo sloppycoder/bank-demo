@@ -1,16 +1,17 @@
 package app
 
 import (
+	"os"
+	"runtime"
+	"strings"
+	"time"
+
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
-	"os"
-	"runtime"
-	"strings"
-	"time"
 )
 
 func initJaegerExporter() *jaeger.Exporter {
@@ -43,6 +44,7 @@ func initJaegerExporter() *jaeger.Exporter {
 func initStats(exporter *stackdriver.Exporter) {
 	view.SetReportingPeriod(60 * time.Second)
 	view.RegisterExporter(exporter)
+
 	if err := view.Register(ocgrpc.DefaultServerViews...); err != nil {
 		log.Warn("Error registering default server views")
 	} else {
@@ -59,7 +61,6 @@ func initStackdriverExporter() *stackdriver.Exporter {
 
 	for i := 1; i <= 3; i++ {
 		exporter, err := stackdriver.NewExporter(stackdriver.Options{
-			ProjectID: "vino9-276317",
 			DefaultTraceAttributes: map[string]interface{}{
 				"runtime": runtime.Version(),
 				"service": "dashboard",
@@ -87,6 +88,7 @@ func InitTracing() {
 	if sdExporter != nil {
 		trace.RegisterExporter(sdExporter)
 		initStats(sdExporter)
+
 		exporterAvailable = true
 	}
 
@@ -95,6 +97,7 @@ func InitTracing() {
 		jaegerExporter := initJaegerExporter()
 		if jaegerExporter != nil {
 			trace.RegisterExporter(jaegerExporter)
+
 			exporterAvailable = true
 		}
 	}
