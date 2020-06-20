@@ -2,9 +2,10 @@ package main
 
 import (
 	"dashboard/app"
-	log "github.com/sirupsen/logrus"
 	"net"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func startServer() {
