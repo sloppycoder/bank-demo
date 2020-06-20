@@ -7,7 +7,6 @@ plugins {
 }
 
 
-
 version "0.1"
 group "casa.account.v1"
 
@@ -18,7 +17,7 @@ repositories {
 
 configurations {
     // for dependencies that are needed for development only
-    developmentOnly 
+    developmentOnly
 }
 
 dependencies {
@@ -31,10 +30,16 @@ dependencies {
     implementation "io.micronaut:micronaut-validation"
     implementation "io.micronaut:micronaut-runtime"
     implementation "javax.annotation:javax.annotation-api"
+    // driver for Cassandra
     implementation "com.datastax.oss:java-driver-core:4.6.1"
     implementation "com.datastax.oss:java-driver-mapper-processor:4.6.1"
+    // health and reflections gRPC services
     implementation "io.grpc:grpc-services:1.26.0"
+    // output log in JSON format
     runtimeOnly "ch.qos.logback:logback-classic:1.2.3"
+    runtimeOnly "ch.qos.logback.contrib:logback-json-classic:0.1.5"
+    runtimeOnly "ch.qos.logback.contrib:logback-jackson:0.1.5"
+
     testAnnotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"
     testImplementation platform("io.micronaut:micronaut-bom:$micronautVersion")
@@ -55,8 +60,8 @@ test.classpath += configurations.developmentOnly
 mainClassName = "casa.account.v1.Application"
 
 ext {
-    protocVersion="3.5.1"
-    grpcVersion="1.18.0"
+    protocVersion = "3.5.1"
+    grpcVersion = "1.18.0"
 }
 
 jib {
@@ -87,7 +92,7 @@ protobuf {
 test {
     useJUnitPlatform()
 }
-tasks.withType(JavaCompile){
+tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
     options.compilerArgs.add('-parameters')
 }
