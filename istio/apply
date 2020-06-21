@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# exit when any command fails
-set -e
-
 KUSTOMIZE=$(which kustomize)
 
 if [ -z "$KUSTOMIZE" ]; then
     echo "kustomize not found. please download from https://github.com/kubernetes-sigs/kustomize/releases"
     exit 1
 fi
+
+# exit when any command fails
+set -e
 
 MODE=apply
 if [ "$1" == "--delete" ]; then
