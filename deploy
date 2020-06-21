@@ -96,6 +96,7 @@ kubectl get pods
 
 echo
 echo sending a test request to endpoint
+sleep 3
 cd ../load-generator
 ./e
 

@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# exit when any command fails
-set -e
 
 EVANS=$(which evans)
 
@@ -9,6 +7,9 @@ if [ -z "$EVANS" ]; then
     echo "evans not found. please download from https://github.com/ktr0731/evans/releases"
     exit 1
 fi
+
+# exit when any command fails
+set -e
 
 source ../common.sh
 get_ingress_addr
