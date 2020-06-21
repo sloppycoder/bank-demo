@@ -1,6 +1,6 @@
 ## TODOs:
 1. enable mTLS between services and setup rules for proper access control (isto 1.5 and 1.4 has different APIs). done (swtiched to 1.4.8 on minikube)
-2. add logic to correlate log to trace entries, both for stackdriver and jaeger/elastic
+2. add logic to correlate log to trace entries, both for stackdriver and jaeger/elastic (done. added trace and span id to log output in dashboard and casa-account-v1. stackdriver correlation logic is not yet implemetned)
 3. oauth token for gRPC service call
 4. setup istio authentication rules to examine oauth header for gRPC call
 5. expose metrics from microservice and send to both stackdriber and prometheus. (can we get away with using istio metrics as proxy for app metrics, so that app can skip metrics logic...?)
