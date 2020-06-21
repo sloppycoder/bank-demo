@@ -69,6 +69,13 @@ jib {
     from {
         image = 'gcr.io/distroless/java:11'
     }
+    container {
+        jvmFlags = [ 
+          '-Xms128m',
+          '-Xmx512m',
+          '-Dlog4j2.contextDataInjector=io.opencensus.contrib.logcorrelation.log4j2.OpenCensusTraceContextDataInjector'
+        ]
+    }
 }
 
 sourceSets {
