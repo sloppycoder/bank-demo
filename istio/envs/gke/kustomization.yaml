@@ -12,4 +12,4 @@ patchesJson6902:
     patch: |-
       - op: replace
         path: /spec/servers/0/hosts/0
-        value: "demobank.red.vino9.net"
+        value: "api.demobank.vino9.net"
