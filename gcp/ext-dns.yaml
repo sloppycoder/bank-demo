@@ -58,7 +58,7 @@ spec:
         - --source=service
         - --source=ingress
         - --source=istio-gateway
-        - --domain-filter=red.vino9.net
+        - --domain-filter=demobank.vino9.net
         - --provider=google
         - --registry=txt
         - --txt-owner-id=gke_vino9-276317_gke1
