@@ -19,6 +19,13 @@ function start_dashboard {
     cd ..
 }
 
+function start_customer_v1 {
+    echo "starting customer-v1"
+    cd customer-v1
+    skaffold run
+    cd ..
+}
+
 function start_casa_account_v1 {
     echo "starting casa-account-v1"
     cd casa-account-v1
@@ -81,6 +88,7 @@ kustomize build . | kubectl apply -n $APP_NAMESPACE -f -
 
 # starting services
 start_dashboard
+start_customer_v1
 start_casa_account_v1
 start_casa_account_v2
 
