@@ -30,6 +30,7 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
   @Inject private CqlSession session;
   @Inject Tracer tracer;
 
+  @Override
   public void getAccount(GetCasaAccountRequest req, StreamObserver<CasaAccount> responseObserver) {
     String accountId = req.getAccountId();
 
