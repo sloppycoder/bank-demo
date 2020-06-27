@@ -12,7 +12,4 @@ patchesJson6902:
   patch: |-
     - op: add
       path: /spec/template/spec/containers/0/env/0
-      value: { "name": "JAEGER_AGENT_HOST", "value": "jaeger-agent.istio-system" }
-    - op: add
-      path: /spec/template/spec/containers/0/env/0
-      value: { "name": "JAEGER_AGENT_PORT", "value": "6832" }
+      value: { "name": "ZIPKIN_COLLECTOR_URL", "value": "http://zipkin.istio-system:9411/api/v2/spans" }

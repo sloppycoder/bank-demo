@@ -12,7 +12,7 @@
     "lodash": "^4.6.1",
     "@opencensus/core": "^0.0.22",
     "@opencensus/nodejs": "^0.0.22",
-    "@opencensus/exporter-jaeger": "^0.0.22",
+    "@opencensus/exporter-zipkin": "^0.0.22",
     "@google-cloud/trace-agent": "^4.2.5"
   }
 }
