@@ -50,15 +50,17 @@ func warn(ctx context.Context, args ...interface{}) {
 func getCustomerConnection(ctx context.Context) (*grpc.ClientConn, error) {
 	// TODO: should add some retry mechansim for wait for Transient Error and Connecting states
 	if _custConn != nil && _custConn.GetState() != connectivity.Shutdown {
+		info(ctx, "_custConn state = ", _custConn.GetState().String())
 		return _custConn, nil
 	}
 
 	conn, err := newCustomerConnection(ctx)
 	if err == nil {
-		_casaConn = conn
-		return _casaConn, nil
+		_custConn = conn
+		return _custConn, nil
 	}
 
+	warn(ctx, "unable to create connection to customer service", err)
 	return nil, err
 }
 
@@ -70,14 +72,17 @@ func newCustomerConnection(ctx context.Context) (*grpc.ClientConn, error) {
 		addr = "customer:50051"
 	}
 
-	return grpc.DialContext(ctx, addr,
-		grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	return grpc.Dial(
+		addr,
+		grpc.WithInsecure(),
+		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
 
 }
 
 func getCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
 	// TODO: should add some retry mechansim for wait for Transient Error and Connecting states
 	if _casaConn != nil && _casaConn.GetState() != connectivity.Shutdown {
+		info(ctx, "_casaConn state = ", _casaConn.GetState().String())
 		return _casaConn, nil
 	}
 
@@ -87,6 +92,7 @@ func getCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
 		return _casaConn, nil
 	}
 
+	warn(ctx, "unable to create connection to casa account service", err)
 	return nil, err
 }
 
@@ -98,8 +104,10 @@ func newCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
 		addr = "casa-account:50051"
 	}
 
-	return grpc.DialContext(ctx, addr,
-		grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+	return grpc.Dial(
+		addr,
+		grpc.WithInsecure(),
+		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
 
 }
 
@@ -116,10 +124,10 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 
 	errs, ctx := errgroup.WithContext(ctx)
 	errs.Go(func() error {
-		return getCasaAccount(ctx, req.LoginName, dashboard)
+		return getCustomer(ctx, req.LoginName, dashboard)
 	})
 	errs.Go(func() error {
-		return getCustomer(ctx, req.LoginName, dashboard)
+		return getCasaAccount(ctx, req.LoginName, dashboard)
 	})
 	if err := errs.Wait(); err != nil {
 		return nil, status.New(codes.Code(code.Code_NOT_FOUND), "uneable to load dashboard").Err()
@@ -141,6 +149,8 @@ func getCasaAccount(ctx context.Context, accountId string, dashboard *api.Dashbo
 	casa, err := c.GetAccount(subctx, &api.GetCasaAccountRequest{AccountId: accountId})
 	if err == nil {
 		dashboard.Casa = []*api.CasaAccount{casa}
+	} else {
+		info(ctx, "error retrieving casa account detail", err)
 	}
 
 	return err
@@ -159,8 +169,9 @@ func getCustomer(ctx context.Context, custId string, dashboard *api.Dashboard) e
 	cust, err := c.GetCustomer(subctx, &api.GetCustomerRequest{CustomerId: custId})
 	if err == nil {
 		dashboard.Customer = cust
+	} else {
+		info(ctx, "error retrieving customer detail", err)
 	}
-
 	return err
 }
 
