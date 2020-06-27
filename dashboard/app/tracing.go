@@ -6,39 +6,34 @@ import (
 	"strings"
 	"time"
 
-	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"contrib.go.opencensus.io/exporter/zipkin"
+	openzipkin "github.com/openzipkin/zipkin-go"
+	httpreporter "github.com/openzipkin/zipkin-go/reporter/http"
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
 )
 
-func initJaegerExporter() *jaeger.Exporter {
-	svcAddr := os.Getenv("JAEGER_ENDPOINT")
-	if svcAddr == "" {
-		log.Info("jaeger exporter not initialized")
+func initZipkinExporter() *zipkin.Exporter {
+	collectorUrl := os.Getenv("ZIPKIN_COLLECTOR_URL")
+	if collectorUrl == "" {
+		log.Info("zipkin tracing cannot be initailzed as ZIPKIN_COLLECTOR_URL is not set")
 		return nil
 	}
 
-	exporter, err := jaeger.NewExporter(jaeger.Options{
-		CollectorEndpoint: svcAddr,
-		Process: jaeger.Process{
-			ServiceName: "dashboard",
-			Tags: []jaeger.Tag{
-				jaeger.StringTag("runtime", runtime.Version()),
-				jaeger.StringTag("service", "dashboard"),
-			},
-		},
-	})
-	if err != nil {
-		log.Warn("error trying to initialize jaeger exporter", err)
-		return nil
+	localEndpoint, _ := openzipkin.NewEndpoint("dashboard", "dashboard:0")
+	reporter := httpreporter.NewReporter(collectorUrl)
+	zipkinExporter := zipkin.NewExporter(reporter, localEndpoint)
+
+	if zipkinExporter != nil {
+		log.Info("zipkin tracing initialized")
+		return zipkinExporter
 	}
 
-	log.Info("jaeger exporter initialized")
-
-	return exporter
+	log.Info("zipkin tracing not initialized")
+	return nil
 }
 
 func initStats(exporter *stackdriver.Exporter) {
@@ -94,9 +89,9 @@ func InitTracing() {
 
 	// if stackdriver is not available, then jaeger
 	if !exporterAvailable {
-		jaegerExporter := initJaegerExporter()
-		if jaegerExporter != nil {
-			trace.RegisterExporter(jaegerExporter)
+		zipkinExporter := initZipkinExporter()
+		if zipkinExporter != nil {
+			trace.RegisterExporter(zipkinExporter)
 
 			exporterAvailable = true
 		}
