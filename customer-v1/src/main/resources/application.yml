@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: customer-v1
+  sleuth:
+    grpc:
+      enabled: true
+    sampler:
+      probability: 1.0
+  zipkin:
+    enabled: ${TRACE_WITH_ZIPKIN:true}
+    base-url: http://zipkin.istio-system:9411
+  cloud:
+    gcp:
+      trace:
+        enabled: ${TRACE_WITH_STACKDRIVER:false}
+
+grpc:
+  server:
+    port: 50051

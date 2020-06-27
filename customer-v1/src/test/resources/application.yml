@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: casa-account
+  zipkin:
+    enabled: false
+  cloud:
+    gcp:
+      trace:
+        enabled: false

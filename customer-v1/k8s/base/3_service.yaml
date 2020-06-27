@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-v1
+  labels:
+    app: customer
+    version: v1
+spec:
+  selector:
+    matchLabels:
+      app: customer
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: customer
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: server
+          image: gcr.io/vino9-276317/demo-bank/customer-v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 50051
+              protocol: TCP
+          env:
+            # this must be the 1st element.
+            # change the position of this element will break kustomize when deploying to cluster
+            - name: TRACE_WITH_ZIPKIN
+              value: "true"
+            # this must be the 2nd element
+            - name: TRACE_WITH_STACKDRIVER
+              value: "false"
+          readinessProbe:
+            exec:
+              command: ["/grpc_health_probe", "-addr", "127.0.0.1:50051"]
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["/grpc_health_probe", "-addr", "127.0.0.1:50051"]
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 192Mi
+            limits:
+              cpu: 1000m
+              memory: 384Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer
+  labels:
+    app: customer
+    service: customer
+spec:
+  type: ClusterIP
+  selector:
+    app: customer
+  ports:
+    - name: grpc
+      port: 50051
