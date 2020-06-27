@@ -3,6 +3,9 @@ package app
 import (
 	"context"
 	api "dashboard/api"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/genproto/googleapis/rpc/code"
+	"google.golang.org/grpc/connectivity"
 	"os"
 	"time"
 
@@ -20,6 +23,10 @@ import (
 type Server struct {
 	api.UnimplementedDashboardServiceServer
 }
+
+var (
+	_casaConn, _custConn *grpc.ClientConn
+)
 
 // helper for logging with trace and span id
 func info(ctx context.Context, args ...interface{}) {
@@ -40,38 +47,52 @@ func warn(ctx context.Context, args ...interface{}) {
 	}
 }
 
-// GetDashboard implements DashboardService.GetDashboard.
-func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest) (*api.Dashboard, error) {
-	span := trace.FromContext(ctx)
-
-	user := req.LoginName
-	info(ctx, "2. GetDashboard for user ", user)
-
-	span.AddAttributes(
-		trace.StringAttribute("get_dashboard.login_name", user))
-
-	dashboard := &api.Dashboard{
-		Customer: &api.Customer{
-			LoginName:  req.LoginName,
-			CustomerId: req.LoginName,
-		}}
-
-	casa, err := getCasaAccount(ctx, req.LoginName)
-	if err != nil {
-		// perhaps should retry before returning dummy value?
-		dashboard.Casa = []*api.CasaAccount{}
-
-		warn(ctx, "Unable to retrieve account detail")
-	} else {
-		dashboard.Casa = []*api.CasaAccount{casa}
-		dashboard.Customer.Name = dashboard.Casa[0].Nickname
+func getCustomerConnection(ctx context.Context) (*grpc.ClientConn, error) {
+	// TODO: should add some retry mechansim for wait for Transient Error and Connecting states
+	if _custConn != nil && _custConn.GetState() != connectivity.Shutdown {
+		return _custConn, nil
 	}
 
-	return dashboard, nil
+	conn, err := newCustomerConnection(ctx)
+	if err == nil {
+		_casaConn = conn
+		return _casaConn, nil
+	}
+
+	return nil, err
 }
 
-// TODO: should probably implement some kind of managed channel for better performance.
-func initCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
+func newCustomerConnection(ctx context.Context) (*grpc.ClientConn, error) {
+	info(ctx, "Creating new connection for Customer Service")
+
+	addr := os.Getenv("CUSTOMER_SVC_ADDR")
+	if addr == "" {
+		addr = "customer:50051"
+	}
+
+	return grpc.DialContext(ctx, addr,
+		grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+
+}
+
+func getCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
+	// TODO: should add some retry mechansim for wait for Transient Error and Connecting states
+	if _casaConn != nil && _casaConn.GetState() != connectivity.Shutdown {
+		return _casaConn, nil
+	}
+
+	conn, err := newCasaConnection(ctx)
+	if err == nil {
+		_casaConn = conn
+		return _casaConn, nil
+	}
+
+	return nil, err
+}
+
+func newCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
+	info(ctx, "Creating new connection for Casa Service")
+
 	addr := os.Getenv("CASA_SVC_ADDR")
 	if addr == "" {
 		addr = "casa-account:50051"
@@ -79,27 +100,68 @@ func initCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
 
 	return grpc.DialContext(ctx, addr,
 		grpc.WithInsecure(), grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
+
 }
 
-func getCasaAccount(ctx context.Context, accountId string) (*api.CasaAccount, error) {
-	conn, err := initCasaConnection(ctx)
-	if err != nil {
-		return nil, err
+// GetDashboard implements DashboardService.GetDashboard.
+func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest) (*api.Dashboard, error) {
+	user := req.LoginName
+	info(ctx, "GetDashboard for user ", user)
+
+	span := trace.FromContext(ctx)
+	span.AddAttributes(
+		trace.StringAttribute("get_dashboard.login_name", user))
+
+	dashboard := &api.Dashboard{}
+
+	errs, ctx := errgroup.WithContext(ctx)
+	errs.Go(func() error {
+		return getCasaAccount(ctx, req.LoginName, dashboard)
+	})
+	errs.Go(func() error {
+		return getCustomer(ctx, req.LoginName, dashboard)
+	})
+	if err := errs.Wait(); err != nil {
+		return nil, status.New(codes.Code(code.Code_NOT_FOUND), "uneable to load dashboard").Err()
 	}
 
-	defer conn.Close()
+	return dashboard, nil
+}
+
+func getCasaAccount(ctx context.Context, accountId string, dashboard *api.Dashboard) error {
+	conn, err := getCasaConnection(ctx)
+	if err != nil {
+		return err
+	}
 
 	c := api.NewCasaAccountServiceClient(conn)
 	subctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
-	r, err := c.GetAccount(subctx, &api.GetCasaAccountRequest{AccountId: accountId})
-	if err != nil {
-		warn(subctx, "unable to retrieve CasaAccount detail", err)
-		return r, err
+	casa, err := c.GetAccount(subctx, &api.GetCasaAccountRequest{AccountId: accountId})
+	if err == nil {
+		dashboard.Casa = []*api.CasaAccount{casa}
 	}
 
-	return r, nil
+	return err
+}
+
+func getCustomer(ctx context.Context, custId string, dashboard *api.Dashboard) error {
+	conn, err := getCustomerConnection(ctx)
+	if err != nil {
+		return err
+	}
+
+	c := api.NewCustomerServiceClient(conn)
+	subctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+
+	cust, err := c.GetCustomer(subctx, &api.GetCustomerRequest{CustomerId: custId})
+	if err == nil {
+		dashboard.Customer = cust
+	}
+
+	return err
 }
 
 func InitGrpcServer() (*grpc.Server, error) {
