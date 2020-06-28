@@ -1,11 +1,14 @@
 package app
 
 import (
+	"errors"
+	"net/http"
 	"os"
 	"runtime"
 	"strings"
 	"time"
 
+	"contrib.go.opencensus.io/exporter/prometheus"
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"contrib.go.opencensus.io/exporter/zipkin"
 	openzipkin "github.com/openzipkin/zipkin-go"
@@ -75,6 +78,33 @@ func initStackdriverExporter() *stackdriver.Exporter {
 	return nil
 }
 
+func initPrometheusExporter() (*prometheus.Exporter, error) {
+	metricsPort := os.Getenv("METRIC_HTTP_ADDR")
+	if metricsPort == "" {
+		log.Info("stackdriver disabled by environment variable")
+		return nil, errors.New("METRIC_HTTP_ADDR not set")
+	}
+
+	promExporter, err := prometheus.NewExporter(prometheus.Options{})
+	if err != nil {
+		log.Warnf("Failed to create Prometheus exporter: %v", err)
+		return nil, err
+	}
+
+	// TODO: how to shut this down gracefully?
+	go func() {
+		log.Info("starting metrics http server at ", metricsPort)
+
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promExporter)
+		if err := http.ListenAndServe(metricsPort, mux); err != nil {
+			log.Warnf("Failed to run Prometheus /metrics endpoint: %v", err)
+		}
+	}()
+
+	return promExporter, nil
+}
+
 func InitTracing() {
 	exporterAvailable := false
 
@@ -92,6 +122,9 @@ func InitTracing() {
 		zipkinExporter := initZipkinExporter()
 		if zipkinExporter != nil {
 			trace.RegisterExporter(zipkinExporter)
+			if promExporter, err := initPrometheusExporter(); err == nil {
+				initStats(promExporter)
+			}
 
 			exporterAvailable = true
 		}
