@@ -2,3 +2,4 @@ resources:
   - 1_expose_dashboard.yaml  
   - 2_casa_v1_v2_split.yaml
   - 3_grpc_web_filter.yaml
+  - 4_customer_v1.yaml
