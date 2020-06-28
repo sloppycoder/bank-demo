@@ -181,7 +181,11 @@ func InitGrpcServer() (*grpc.Server, error) {
 	view.SetReportingPeriod(StatsReportingPeriod * time.Second)
 
 	if err := view.Register(ocgrpc.DefaultServerViews...); err != nil {
-		log.Warn("Unable to register views for stats ", err)
+		log.Warn("Unable to register views for server stats ", err)
+	}
+
+	if err := view.Register(ocgrpc.DefaultClientViews...); err != nil {
+		log.Warn("Unable to register views for client stats ", err)
 	}
 
 	s := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
