@@ -54,12 +54,20 @@ if [ "$1" = "--minikube" ]; then
     echo 
     echo now manually install istio to minikube, e.g.
     echo
-    echo istioctl manifest apply \
-    echo      --set profile=demo \
-    echo      --set values.global.mtls.auto=true \
+    echo istioctl manifest apply \\
+    echo      --set profile=demo \\
+    echo      --set values.global.mtls.auto=true \\
     echo      --set values.global.mtls.enabled=true
     echo
-    echo wait a while for istio to finish install and stabalizes, 
+    echo
+    echo wait a while for istio to finish install and stabalizes.
+    echo if you use istio 1.4.x, please run the below command to enable 
+    echo port 31400 on the istio-gateway for gRPC traffic
+    echo kubectl patch svc istio-ingressgateway -n istio-system \\
+    echo     --type='json' \\
+    echo     -p='[{"op":"add","path":"/spec/ports/0",  value: {"name": "tcp", "port":31400,"targetPort":31400, "protocol":"TCP"}}]'
+    echo
+    echo 
     echo then rerun this script without --minikube flag to install demo application
 
     exit 0
