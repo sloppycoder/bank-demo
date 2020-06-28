@@ -108,7 +108,6 @@ func newCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
 		addr,
 		grpc.WithInsecure(),
 		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
-
 }
 
 // GetDashboard implements DashboardService.GetDashboard.
@@ -116,9 +115,10 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 	user := req.LoginName
 	info(ctx, "GetDashboard for user ", user)
 
-	span := trace.FromContext(ctx)
-	span.AddAttributes(
-		trace.StringAttribute("get_dashboard.login_name", user))
+	if span := trace.FromContext(ctx); span != nil {
+		span.AddAttributes(
+			trace.StringAttribute("get_dashboard.login_name", user))
+	}
 
 	dashboard := &api.Dashboard{}
 
@@ -130,7 +130,7 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 		return getCasaAccount(ctx, req.LoginName, dashboard)
 	})
 	if err := errs.Wait(); err != nil {
-		return nil, status.New(codes.Code(code.Code_NOT_FOUND), "uneable to load dashboard").Err()
+		return nil, status.New(codes.Code(code.Code_NOT_FOUND), "unable to load dashboard").Err()
 	}
 
 	return dashboard, nil
