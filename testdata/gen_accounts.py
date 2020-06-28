@@ -86,6 +86,7 @@ def populate_testdata(n, force_drop):
     sess = create_session()
     sess.execute('use vino9')
     print_db_version(sess)
+    # sys.exit(0)
     if force_drop:
         drop_and_recreate_table(sess)
 
@@ -135,6 +136,7 @@ def read_env(env: str) -> dict:
 
 def create_session():
     config = read_env('../cassandra.env')
+    print('connect to cassandra instance %s' % config["instance"])
     if config['instance'] == 'astra':
         cluster = Cluster(
             cloud={'secure_connect_bundle': '../secure-connect-vino9.zip'},
@@ -144,7 +146,7 @@ def create_session():
         cluster = Cluster([config['host']], port=int(config['port']))
         return cluster.connect('vino9')
     else:
-        print('unknown cassandra instance ${config["instance"]}, abort.')
+        print('unknown cassandra instance %s, abort.' % config["instance"])
         sys.exit(1)
 
 
