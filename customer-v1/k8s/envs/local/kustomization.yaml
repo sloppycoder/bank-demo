@@ -12,5 +12,5 @@ patchesJson6902:
     patch: |-
       - op: add
         path: /spec/template/spec/containers/0/env/0
-        value: { "name": "TRACING_USE_ZIPKIN", "value": "yes" }
+        value: { "name": "TRACE_WITH_ZIPKIN", "value": "true" }
 

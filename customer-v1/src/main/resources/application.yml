@@ -7,7 +7,7 @@ spring:
     sampler:
       probability: 1.0
   zipkin:
-    enabled: ${TRACE_WITH_ZIPKIN:true}
+    enabled: ${TRACE_WITH_ZIPKIN:false}
     base-url: http://zipkin.istio-system:9411
   cloud:
     gcp:

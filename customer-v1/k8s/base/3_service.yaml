@@ -25,13 +25,8 @@ spec:
             - containerPort: 50051
               protocol: TCP
           env:
-            # this must be the 1st element.
-            # change the position of this element will break kustomize when deploying to cluster
-            - name: TRACE_WITH_ZIPKIN
-              value: "true"
-            # this must be the 2nd element
-            - name: TRACE_WITH_STACKDRIVER
-              value: "false"
+            - name: DUMMY
+              value: "do_not_remove"
           readinessProbe:
             exec:
               command: ["/grpc_health_probe", "-addr", "127.0.0.1:50051"]
