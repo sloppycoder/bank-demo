@@ -95,13 +95,22 @@ fi
 kustomize build . | kubectl apply -n $APP_NAMESPACE -f -
 
 # starting services
-start_dashboard
-start_customer_v1
-start_casa_account_v1
-start_casa_account_v2
+start_dashboard &
+start_customer_v1 &
+start_casa_account_v1 &
+start_casa_account_v2 &
 
 if [ "$1" == "--load" ]; then
-    start_load_generator
+    start_load_generator &
+fi
+
+for job in $(jobs -p)
+do
+    wait $job || let "FAIL+=1"
+done
+
+if [ "$FAIL" == "0" ]; then
+    echo $FAIL jobs failed. some features may not work correctly
 fi
 
 cd istio
