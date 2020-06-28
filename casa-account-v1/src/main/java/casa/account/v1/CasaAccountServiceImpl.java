@@ -11,6 +11,7 @@ import demo.bank.CasaAccountServiceGrpc;
 import demo.bank.GetCasaAccountRequest;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import io.opencensus.trace.AttributeValue;
 import io.opencensus.trace.Span;
 import io.opencensus.trace.Tracer;
 import org.slf4j.Logger;
@@ -36,7 +37,9 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
 
     tracer
         .getCurrentSpan()
-        .addAnnotation(String.format("casa-account.get_account.account_id=%s", accountId));
+        .putAttribute(
+            "casa-account-v1/get_account/account_id",
+            AttributeValue.stringAttributeValue(accountId));
 
     retrieveAccountFromDB(accountId, responseObserver);
   }
@@ -46,7 +49,8 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
     logger.info("Retrieving CasaAccount details for {}", accountId);
 
     Span span = tracer.spanBuilder("Cassandra.query").startSpan();
-    span.addAnnotation(String.format("casa-account.get_account.account_id=%s", accountId));
+    span.putAttribute(
+        "casa-account-v1/get_account/retrieve_from_db/account_id", AttributeValue.stringAttributeValue(accountId));
 
     ResultSet rs =
         session.execute(
