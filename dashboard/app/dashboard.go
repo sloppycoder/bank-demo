@@ -2,12 +2,13 @@ package app
 
 import (
 	"context"
-	api "dashboard/api"
+	"dashboard/api"
+	"os"
+	"time"
+
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/grpc/connectivity"
-	"os"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/plugin/ocgrpc"
@@ -28,13 +29,15 @@ var (
 	_casaConn, _custConn *grpc.ClientConn
 )
 
+const StatsReportingPeriod = 60
+
 // helper for logging with trace and span id
 func info(ctx context.Context, args ...interface{}) {
 	if span := trace.FromContext(ctx); span != nil {
 		log.WithFields(log.Fields{
 			"traceId": span.SpanContext().TraceID.String(),
 			"spanId":  span.SpanContext().SpanID.String(),
-		}).Info(args)
+		}).Info(args...)
 	}
 }
 
@@ -43,12 +46,12 @@ func warn(ctx context.Context, args ...interface{}) {
 		log.WithFields(log.Fields{
 			"traceId": span.SpanContext().TraceID.String(),
 			"spanId":  span.SpanContext().SpanID.String(),
-		}).Warn(args)
+		}).Warn(args...)
 	}
 }
 
 func getCustomerConnection(ctx context.Context) (*grpc.ClientConn, error) {
-	// TODO: should add some retry mechansim for wait for Transient Error and Connecting states
+	// TODO: should add some retry mechanism for wait for Transient Error and Connecting states
 	if _custConn != nil && _custConn.GetState() != connectivity.Shutdown {
 		info(ctx, "_custConn state = ", _custConn.GetState().String())
 		return _custConn, nil
@@ -76,11 +79,10 @@ func newCustomerConnection(ctx context.Context) (*grpc.ClientConn, error) {
 		addr,
 		grpc.WithInsecure(),
 		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
-
 }
 
 func getCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
-	// TODO: should add some retry mechansim for wait for Transient Error and Connecting states
+	// TODO: should add some retry mechanism for wait for Transient Error and Connecting states
 	if _casaConn != nil && _casaConn.GetState() != connectivity.Shutdown {
 		info(ctx, "_casaConn state = ", _casaConn.GetState().String())
 		return _casaConn, nil
@@ -136,7 +138,7 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 	return dashboard, nil
 }
 
-func getCasaAccount(ctx context.Context, accountId string, dashboard *api.Dashboard) error {
+func getCasaAccount(ctx context.Context, accountID string, dashboard *api.Dashboard) error {
 	conn, err := getCasaConnection(ctx)
 	if err != nil {
 		return err
@@ -146,7 +148,7 @@ func getCasaAccount(ctx context.Context, accountId string, dashboard *api.Dashbo
 	subctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
-	casa, err := c.GetAccount(subctx, &api.GetCasaAccountRequest{AccountId: accountId})
+	casa, err := c.GetAccount(subctx, &api.GetCasaAccountRequest{AccountId: accountID})
 	if err == nil {
 		dashboard.Casa = []*api.CasaAccount{casa}
 	} else {
@@ -156,7 +158,7 @@ func getCasaAccount(ctx context.Context, accountId string, dashboard *api.Dashbo
 	return err
 }
 
-func getCustomer(ctx context.Context, custId string, dashboard *api.Dashboard) error {
+func getCustomer(ctx context.Context, custID string, dashboard *api.Dashboard) error {
 	conn, err := getCustomerConnection(ctx)
 	if err != nil {
 		return err
@@ -166,7 +168,7 @@ func getCustomer(ctx context.Context, custId string, dashboard *api.Dashboard) e
 	subctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 
-	cust, err := c.GetCustomer(subctx, &api.GetCustomerRequest{CustomerId: custId})
+	cust, err := c.GetCustomer(subctx, &api.GetCustomerRequest{CustomerId: custID})
 	if err == nil {
 		dashboard.Customer = cust
 	} else {
@@ -176,7 +178,7 @@ func getCustomer(ctx context.Context, custId string, dashboard *api.Dashboard) e
 }
 
 func InitGrpcServer() (*grpc.Server, error) {
-	view.SetReportingPeriod(60 * time.Second)
+	view.SetReportingPeriod(StatsReportingPeriod * time.Second)
 
 	if err := view.Register(ocgrpc.DefaultServerViews...); err != nil {
 		log.Warn("Unable to register views for stats ", err)

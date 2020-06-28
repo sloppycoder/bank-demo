@@ -17,14 +17,14 @@ import (
 )
 
 func initZipkinExporter() *zipkin.Exporter {
-	collectorUrl := os.Getenv("ZIPKIN_COLLECTOR_URL")
-	if collectorUrl == "" {
+	collectorURL := os.Getenv("ZIPKIN_COLLECTOR_URL")
+	if collectorURL == "" {
 		log.Info("zipkin tracing cannot be initailzed as ZIPKIN_COLLECTOR_URL is not set")
 		return nil
 	}
 
 	localEndpoint, _ := openzipkin.NewEndpoint("dashboard", "dashboard:0")
-	reporter := httpreporter.NewReporter(collectorUrl)
+	reporter := httpreporter.NewReporter(collectorURL)
 	zipkinExporter := zipkin.NewExporter(reporter, localEndpoint)
 
 	if zipkinExporter != nil {
@@ -36,8 +36,8 @@ func initZipkinExporter() *zipkin.Exporter {
 	return nil
 }
 
-func initStats(exporter *stackdriver.Exporter) {
-	view.SetReportingPeriod(60 * time.Second)
+func initStats(exporter view.Exporter) {
+	view.SetReportingPeriod(StatsReportingPeriod * time.Second)
 	view.RegisterExporter(exporter)
 
 	if err := view.Register(ocgrpc.DefaultServerViews...); err != nil {
@@ -87,7 +87,7 @@ func InitTracing() {
 		exporterAvailable = true
 	}
 
-	// if stackdriver is not available, then jaeger
+	// if stackdriver is not available, then zipkin
 	if !exporterAvailable {
 		zipkinExporter := initZipkinExporter()
 		if zipkinExporter != nil {

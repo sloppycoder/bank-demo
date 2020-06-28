@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func init() {
+func initLogging() {
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
 	log.SetLevel(log.InfoLevel)
@@ -34,6 +34,7 @@ func startServer() {
 }
 
 func main() {
+	initLogging()
 	app.InitTracing()
 	startServer()
 }
