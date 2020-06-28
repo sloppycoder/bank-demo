@@ -19,7 +19,8 @@ This is a demo banking applicaiton built around modern technolgies. The key pill
 | ------------- |-------------|-------------| 
 | [protos](protos)    | protobuf | protobuf API definition used in all across the application. |
 | [dashboard](dashboard) | Go | dashboard microservice, calls casa-account services, either v1 or v2, controlled by [istio virtualservice](https://istio.io/latest/docs/reference/config/networking/virtual-service/) configuration      |
-| [casa-account-v1](casa-account-v1) | Java | casa account microservice built using [micronaut] framework. It reads account data stored in Cassandra and return the clients |
+| [customer-v1](customer-v1) | Java | customer microservice built using spring boot. It reads customer data stored in MySQL |
+| [casa-account-v1](casa-account-v1) | Java | casa account microservice built using [micronaut](https://micronaut.io/) framework. It reads account data stored in Cassandra |
 | [casa-account-v2](casa-account-v2) | nodejs | casa account microservice, only returns dummy data. |
 | [load-generator](load-generator) | python | uses [Locust](https://locust.io/) to generate API calls |
 | [testdata](testdata) | python | generates test data and write them to Cassandra |
