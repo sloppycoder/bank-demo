@@ -1,0 +1,25 @@
+apiVersion: skaffold/v2beta1
+kind: Config
+metadata:
+  name: ext-cust-svc
+
+build:
+  artifacts:
+  - image: gcr.io/vino9-276317/demo-bank/ext-cust-svc
+
+deploy:
+  kustomize:
+    paths:
+      - k8s/envs/local
+
+profiles:
+  - name: gke
+    activation:
+      - kubeContext: gke1
+    build:
+      googleCloudBuild:
+        projectId: vino9-276317
+    deploy:
+      kustomize:
+        paths:
+          - k8s/envs/gke

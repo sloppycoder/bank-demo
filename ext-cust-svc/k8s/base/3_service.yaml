@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ext-cust-svc
+spec:
+  selector:
+    matchLabels:
+      app: ext-cust-svc
+  template:
+    metadata:
+      labels:
+        app: ext-cust-svc
+    spec:
+      containers:
+        - name: server
+          image: gcr.io/vino9-276317/demo-bank/ext-cust-svc
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ext-cust-svc
+  labels:
+    app: ext-cust-svc
+    service: ext-cust-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: ext-cust-svc
+  ports:
+    - name: http
+      port: 8080
