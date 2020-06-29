@@ -119,7 +119,7 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 
 	if span := trace.FromContext(ctx); span != nil {
 		span.AddAttributes(
-			trace.StringAttribute("get_dashboard.login_name", user))
+			trace.StringAttribute("dashboard/get_dashboard/login_name", user))
 	}
 
 	dashboard := &api.Dashboard{}
