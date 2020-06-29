@@ -47,6 +47,13 @@ function start_load_generator {
     cd ..
 }
 
+function start_ext_cust_svc {
+    echo "starting ext-cust-svc"
+    cd ext-cust-svc
+    skaffold run
+    cd ..
+}
+
 
 if [ "$1" = "--minikube" ]; then
     create_minikube
@@ -100,6 +107,7 @@ start_dashboard &
 start_customer_v1 &
 start_casa_account_v1 &
 start_casa_account_v2 &
+start_ext_cust_svc &
 
 if [ "$1" == "--load" ]; then
     start_load_generator &
