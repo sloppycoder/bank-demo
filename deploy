@@ -63,9 +63,10 @@ if [ "$1" = "--minikube" ]; then
     echo wait a while for istio to finish install and stabalizes.
     echo if you use istio 1.4.x, please run the below command to enable 
     echo port 31400 on the istio-gateway for gRPC traffic
+    echo
     echo kubectl patch svc istio-ingressgateway -n istio-system \\
     echo     --type='json' \\
-    echo     -p='[{"op":"add","path":"/spec/ports/0",  value: {"name": "tcp", "port":31400,"targetPort":31400, "protocol":"TCP"}}]'
+    echo     -p='[{"op":"add","path":"/spec/ports/0", "value":{"name":"tcp", "port":31400,"targetPort":31400, "protocol":"TCP"}}]'
     echo
     echo 
     echo then rerun this script without --minikube flag to install demo application
