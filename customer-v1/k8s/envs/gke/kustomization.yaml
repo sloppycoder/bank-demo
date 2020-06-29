@@ -13,3 +13,6 @@ patchesJson6902:
       - op: add
         path: /spec/template/spec/containers/0/env/0
         value: { "name": "TRACE_WITH_STACKDRIVER", "value": "true" }
+      - op: add
+        path: /spec/template/spec/containers/0/env/1
+        value: { "name": "EXTERNAL_CUSTOMER_URL", "value": "http://ext-cust-svc:8080/customers" }

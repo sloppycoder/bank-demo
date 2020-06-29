@@ -17,3 +17,7 @@ spring:
 grpc:
   server:
     port: 50051
+
+external:
+  customer:
+    url: http://192.168.39.1:8080/customers
