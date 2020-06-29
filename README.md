@@ -22,6 +22,7 @@ This is a demo banking applicaiton built around modern technolgies. The key pill
 | [customer-v1](customer-v1) | Java | customer microservice built using spring boot. It reads customer data stored in MySQL |
 | [casa-account-v1](casa-account-v1) | Java | casa account microservice built using [micronaut](https://micronaut.io/) framework. It reads account data stored in Cassandra |
 | [casa-account-v2](casa-account-v2) | nodejs | casa account microservice, only returns dummy data. |
+| [ext-cust-svc](ext-cust-svc) | python | a simple http server written using [aiohttp](https://docs.aiohttp.org/en/stable/#) to mock an external REST server that provides customer info |
 | [load-generator](load-generator) | python | uses [Locust](https://locust.io/) to generate API calls |
 | [testdata](testdata) | python | generates test data and write them to Cassandra |
 | [istio](istio) | yaml | istio manifest files to traffice management |
