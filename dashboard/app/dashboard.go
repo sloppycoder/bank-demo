@@ -29,7 +29,10 @@ var (
 	_casaConn, _custConn *grpc.ClientConn
 )
 
-const StatsReportingPeriod = 60
+const (
+	TimeoutForDownstreamApi = 5 * time.Second
+	StatsReportingPeriod    = 60
+)
 
 // helper for logging with trace and span id
 func info(ctx context.Context, args ...interface{}) {
@@ -145,7 +148,7 @@ func getCasaAccount(ctx context.Context, accountID string, dashboard *api.Dashbo
 	}
 
 	c := api.NewCasaAccountServiceClient(conn)
-	subctx, cancel := context.WithTimeout(ctx, time.Second)
+	subctx, cancel := context.WithTimeout(ctx, TimeoutForDownstreamApi)
 	defer cancel()
 
 	casa, err := c.GetAccount(subctx, &api.GetCasaAccountRequest{AccountId: accountID})
@@ -165,7 +168,7 @@ func getCustomer(ctx context.Context, custID string, dashboard *api.Dashboard) e
 	}
 
 	c := api.NewCustomerServiceClient(conn)
-	subctx, cancel := context.WithTimeout(ctx, time.Second)
+	subctx, cancel := context.WithTimeout(ctx, TimeoutForDownstreamApi)
 	defer cancel()
 
 	cust, err := c.GetCustomer(subctx, &api.GetCustomerRequest{CustomerId: custID})
