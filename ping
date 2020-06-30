@@ -11,7 +11,7 @@ fi
 # exit when any command fails
 set -e
 
-source ../common.sh
+source common.sh
 get_ingress_addr
 
 [ -z "$DEMOBANK_PORT" ] && exit 1
@@ -21,7 +21,7 @@ ACCOUNT_ID=$1
 
 echo calling gRPC service at ${DEMOBANK_HOST}:${DEMOBANK_PORT} with account_id = ${ACCOUNT_ID}
 echo { \"login_name\": \"${ACCOUNT_ID}\" } | $EVANS \
-         --proto ../protos/demo_bank.proto   \
+         -r \
          --host $DEMOBANK_HOST \
          --port $DEMOBANK_PORT \
          cli \
