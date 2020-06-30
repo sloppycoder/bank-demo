@@ -3,3 +3,5 @@
 .vscode/
 *.iml
 k8s/
+Makefile
+README.md

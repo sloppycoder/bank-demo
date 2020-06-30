@@ -1,12 +1,10 @@
 #!/bin/sh
 
 set -e
-trap "exit" TERM
 
-if [ -z "${SVC_ADDR}" ]; then
-    SVC_ADDR="192.168.39.251:31400"
-fi
+echo starting slave with $BOOM_PARAMS
+./slave $BOOM_PARAMS &
 
-locust --host="$SVC_ADDR" --headless --users "${USERS:-1}" 2>&1
+locust --master --headless --users "${USERS:-1}" 2>&1
 
 
