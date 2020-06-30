@@ -48,3 +48,5 @@ gcp/gcloud-config.json
 # test data
 **/ids*.txt
 
+# binary files
+load-generator/slave
