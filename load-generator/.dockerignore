@@ -3,5 +3,6 @@
 .vscode/
 *.iml
 k8s/
+venv/
 Makefile
 README.md
