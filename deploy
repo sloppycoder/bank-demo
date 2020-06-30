@@ -120,6 +120,7 @@ fi
 
 cd istio
 ./apply
+cd..
 
 echo the application services should be ready by now
 
