@@ -103,7 +103,7 @@ kubectl patch svc istio-ingressgateway -n istio-system \
 
 
 ### Roadmap
-1. better integration of logging and tracing. ability to navigate from trace to log with high accuracy.
+1. better integration of logging and tracing. ability to navigate from trace to log with high accuracy. (implemeneted logic for adding data to trace span, and use custom data, e.g. login_name to search trace span. same custom data is added to log entries)
 2. use an external OpenID Connect provide for authentication.
 3. enable mTLS for inter microservice communication. (done)
 4. use Istio for oauth token validation

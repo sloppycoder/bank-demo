@@ -3,11 +3,11 @@
 2. add logic to correlate log to trace entries, both for stackdriver and jaeger/elastic (done. added trace and span id to log output in dashboard and casa-account-v1. stackdriver correlation logic is not yet implemetned)
 3. oauth token for gRPC service call
 4. setup istio authentication rules to examine oauth header for gRPC call
-5. expose metrics from microservice and send to both stackdriber and prometheus. (can we get away with using istio metrics as proxy for app metrics, so that app can skip metrics logic...?)
-6. log gRPC call service paremeter using opencensus. (possible in Python, not sure about Java and Go)
-7. write new customer service (python?)
+5. expose metrics from microservice and send to both stackdriber and prometheus. (done in dashboard. customer-v1 has some conflict between spring actuator and opencensus, need investigation)
+6. log gRPC call service paremeter using opencensus. (possible in Python, no simple solution exist for java and go)
+7. write new customer service (done, spring boot)
 8. configure egress-gateway for outgoing configuration to database (does not work in minikube)
-9. upgrade testdata module's python cassandra driver to solve tls issue on Ubuntu Linux
+9. upgrade testdata module's python cassandra driver to solve tls issue on Ubuntu Linux (done)
 
 ## Nice to haves
 1. add health_probe to casa-account-v1
