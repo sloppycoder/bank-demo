@@ -7,7 +7,7 @@ function create_minikube {
     minikube start \
     --driver=kvm2 \
     --disk-size='50000mb' \
-    --cpus='2' \
+    --cpus='4' \
     --memory='16384mb' \
     --kubernetes-version='1.16.8' 
 }
@@ -71,9 +71,10 @@ if [ "$1" = "--minikube" ]; then
     echo if you use istio 1.4.x, please run the below command to enable 
     echo port 31400 on the istio-gateway for gRPC traffic
     echo
+    echo
     echo kubectl patch svc istio-ingressgateway -n istio-system \\
-    echo     --type='json' \\
-    echo     -p='[{"op":"add","path":"/spec/ports/0", "value":{"name":"tcp", "port":31400,"targetPort":31400, "protocol":"TCP"}}]'
+    echo     --type=\'json\' \\
+    echo     --patch \'[{\"op\":\"add\",\"path\":\"/spec/ports/0\", \"value\":{\"name\":\"tcp\", \"port\":31400,\"targetPort\":31400, \"protocol\":\"TCP\"}}]\'
     echo
     echo 
     echo then rerun this script without --minikube flag to install demo application
