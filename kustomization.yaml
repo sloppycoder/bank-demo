@@ -2,8 +2,6 @@ generatorOptions:
  disableNameSuffixHash: true
 
 secretGenerator:
-- name: cassandra-secret
+- name: demo-secret
   envs:
-    - cassandra.env
-  files:
-    - secure-connect-vino9.zip
+    - mysql.env
