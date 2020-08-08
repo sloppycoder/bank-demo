@@ -31,7 +31,8 @@ func connectToDB() *sql.DB {
 	log.Printf("MYSQL conn string is %s", connStr)
 
 	for i := 0; i < 3; i++ {
-		db, err := sql.Open("mysql", connStr)
+		db, _ := sql.Open("mysql", connStr)
+		_, err := db.Query("select version()")
 		if err == nil {
 			return db
 		}
