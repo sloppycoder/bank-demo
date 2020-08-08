@@ -23,22 +23,31 @@ var (
 	_conn *grpc.ClientConn
 )
 
-func idsFromDB() ([]string, int) {
-	log.Print("reading ids from database...")
-
+func connectToDB() *sql.DB {
 	connStr := os.Getenv("MYSQL_CONN_STRING")
 	if connStr == "" {
 		connStr = "demo:demo@tcp(192.168.39.1:3306)/demo?tls=skip-verify&autocommit=true"
 	}
-
 	log.Printf("MYSQL conn string is %s", connStr)
-	db, err := sql.Open("mysql", connStr)
-	if err != nil {
-		log.Printf("Unable to connect to database with %s", connStr)
 
-		return []string{"10001000"}, 1
+	for i := 0; i < 3; i++ {
+		db, err := sql.Open("mysql", connStr)
+		if err == nil {
+			return db
+		}
+
+		log.Print("Unable to connect to database, retrying...")
+		time.Sleep(2 * time.Second)
 	}
 
+	log.Fatal("Unable to connect to database, abort.")
+	return nil
+}
+
+func idsFromDB() ([]string, int) {
+	log.Print("reading ids from database...")
+
+	db := connectToDB()
 	rows, err := db.Query("select account_id from demo.casa_account")
 	if err != nil {
 		log.Fatal(err)
