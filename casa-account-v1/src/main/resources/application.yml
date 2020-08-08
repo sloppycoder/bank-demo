@@ -11,9 +11,15 @@ tracing:
   jaeger-endpoint: off
   use-stackdriver: false
 
-cassandra:
-  instance: local
-  host: 127.0.0.1
-  port: 9042
-  username: cassandra
-  password: cassandra
+datasources:
+  default:
+    url: jdbc:mysql://192.168.39.1:3306/demo
+    username: demo
+    password: demo
+    dialect: MYSQL
+
+flyway:
+  datasources:
+    default:
+      enabled: true
+      baseline-on-migrate: true

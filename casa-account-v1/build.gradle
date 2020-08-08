@@ -24,29 +24,22 @@ dependencies {
     annotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
     annotationProcessor "io.micronaut:micronaut-inject-java"
     annotationProcessor "io.micronaut:micronaut-validation"
+    annotationProcessor "io.micronaut.data:micronaut-data-processor"
+
     implementation platform("io.micronaut:micronaut-bom:$micronautVersion")
     implementation "io.micronaut.grpc:micronaut-grpc-runtime"
     implementation "io.micronaut:micronaut-inject"
     implementation "io.micronaut:micronaut-validation"
     implementation "io.micronaut:micronaut-runtime"
     implementation "javax.annotation:javax.annotation-api"
-    // driver for Cassandra
-    implementation "com.datastax.oss:java-driver-core:4.6.1"
-    implementation "com.datastax.oss:java-driver-mapper-processor:4.6.1"
+
+    //micronaut data-jdbc
+    implementation "jakarta.persistence:jakarta.persistence-api:2.2.2"
+    implementation "io.micronaut.data:micronaut-data-jdbc"
+    implementation "io.micronaut.configuration:micronaut-flyway"
+
     // health and reflections gRPC services
     implementation "io.grpc:grpc-services:1.26.0"
-    // use log4j2 which supports JSON output and opencensus integration
-    runtimeOnly "org.apache.logging.log4j:log4j-core:2.12.1"
-    runtimeOnly "org.apache.logging.log4j:log4j-api:2.12.1"
-    runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:2.12.1"
-    runtimeOnly "io.opencensus:opencensus-contrib-log-correlation-log4j2:0.26.0"
-
-    testAnnotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
-    testAnnotationProcessor "io.micronaut:micronaut-inject-java"
-    testImplementation platform("io.micronaut:micronaut-bom:$micronautVersion")
-    testImplementation "org.junit.jupiter:junit-jupiter-api"
-    testImplementation "io.micronaut.test:micronaut-test-junit5"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 
     // opencensus-api is already used in grpc-core library
     // just need to add implementation here.
@@ -54,6 +47,22 @@ dependencies {
     implementation "io.opencensus:opencensus-impl:0.24.0"
     implementation "io.opencensus:opencensus-exporter-trace-jaeger:0.24.0"
     implementation "io.opencensus:opencensus-exporter-trace-stackdriver:0.24.0"
+
+    // use log4j2 which supports JSON output and opencensus integration
+    runtimeOnly "org.apache.logging.log4j:log4j-core:2.12.1"
+    runtimeOnly "org.apache.logging.log4j:log4j-api:2.12.1"
+    runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:2.12.1"
+    runtimeOnly "io.opencensus:opencensus-contrib-log-correlation-log4j2:0.26.0"
+    // jdbc driver
+    runtimeOnly "mysql:mysql-connector-java:8.0.21"
+    runtimeOnly "io.micronaut.configuration:micronaut-jdbc-hikari"
+
+    testAnnotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
+    testAnnotationProcessor "io.micronaut:micronaut-inject-java"
+    testImplementation platform("io.micronaut:micronaut-bom:$micronautVersion")
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testImplementation "io.micronaut.test:micronaut-test-junit5"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }
 
 test.classpath += configurations.developmentOnly

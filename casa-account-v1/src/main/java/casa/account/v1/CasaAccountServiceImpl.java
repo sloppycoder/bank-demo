@@ -1,10 +1,5 @@
 package casa.account.v1;
 
-import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.cql.ResultSet;
-import com.datastax.oss.driver.api.core.cql.Row;
-import com.datastax.oss.driver.api.core.cql.SimpleStatement;
-import com.datastax.oss.driver.api.core.data.UdtValue;
 import demo.bank.Balance;
 import demo.bank.CasaAccount;
 import demo.bank.CasaAccountServiceGrpc;
@@ -19,20 +14,20 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Optional;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
 
 @Singleton
 public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountServiceImplBase {
 
   private static final Logger logger = LoggerFactory.getLogger(CasaAccountServiceImpl.class);
 
-  @Inject private CqlSession session;
+  @Inject CasaAccountRepository repository;
   @Inject Tracer tracer;
 
   @Override
-  public void getAccount(GetCasaAccountRequest req, StreamObserver<CasaAccount> responseObserver) {
+  public void getAccount(
+      GetCasaAccountRequest req, StreamObserver<demo.bank.CasaAccount> responseObserver) {
     String accountId = req.getAccountId();
 
     tracer
@@ -45,24 +40,19 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
   }
 
   private void retrieveAccountFromDB(
-      String accountId, StreamObserver<CasaAccount> responseObserver) {
+      String accountId, StreamObserver<demo.bank.CasaAccount> responseObserver) {
     logger.info("Retrieving CasaAccount details for {}", accountId);
 
-    Span span = tracer.spanBuilder("Cassandra.query").startSpan();
+    Span span = tracer.spanBuilder("db.query").startSpan();
     span.putAttribute(
-        "casa-account-v1/get_account/retrieve_from_db/account_id", AttributeValue.stringAttributeValue(accountId));
+        "casa-account-v1/get_account/retrieve_from_db/account_id",
+        AttributeValue.stringAttributeValue(accountId));
 
-    ResultSet rs =
-        session.execute(
-            SimpleStatement.builder("SELECT * FROM casa_account WHERE account_id = ?")
-                .addPositionalValue(accountId)
-                .build());
-
-    Row row = rs.one();
+    Optional<CasaAccountEntity> result = repository.findById(accountId);
 
     span.end();
 
-    if (row == null) {
+    if (result.isEmpty()) {
       logger.info("casa account {} not found", accountId);
 
       responseObserver.onError(
@@ -70,28 +60,34 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
       return;
     }
 
-    Set<Balance> balances =
-        row.getSet("balances", UdtValue.class).stream()
-            .map(
-                bal ->
-                    Balance.newBuilder()
-                        .setAmount(bal.getFloat("amount"))
-                        .setCreditFlag(bal.getBoolean("credit"))
-                        .setType(Balance.Type.forNumber(bal.getShort("type")))
-                        .build())
-            .collect(toSet());
+    CasaAccountEntity row = result.get();
 
-    CasaAccount account =
-        CasaAccount.newBuilder()
-            .setAccountId(row.getString("account_id"))
-            .setNickname(row.getString("nickname"))
-            .setProdCode(row.getString("prod_code"))
-            .setProdName(row.getString("prod_name"))
-            .setStatus(CasaAccount.Status.forNumber(0))
-            .addAllBalances(balances)
+    Balance bal1 =
+        Balance.newBuilder()
+            .setCreditFlag(false)
+            .setType(Balance.Type.AVAILABLE)
+            .setAmount(row.getBalance())
             .build();
 
-    responseObserver.onNext(account);
+    Balance bal2 =
+        Balance.newBuilder()
+            .setCreditFlag(false)
+            .setType(Balance.Type.CURRENT)
+            .setAmount(row.getBalance())
+            .build();
+
+    CasaAccount casaAccount =
+        demo.bank.CasaAccount.newBuilder()
+            .setAccountId(row.getAccountId())
+            .setNickname(row.getNickName())
+            .setProdCode(row.getProdCode())
+            .setProdName(row.getProdName())
+            .setCurrency(row.getCurrency())
+            .setStatus(CasaAccount.Status.forNumber(row.getStatus()))
+            .addAllBalances(Set.of(bal1, bal2))
+            .build();
+
+    responseObserver.onNext(casaAccount);
     responseObserver.onCompleted();
   }
 }
