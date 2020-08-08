@@ -2,13 +2,15 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
 	"load-generator/api"
 	"log"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
+
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
@@ -17,29 +19,49 @@ import (
 	"github.com/myzhan/boomer"
 )
 
-const (
-	IDFile = "ids.txt"
-)
-
 var (
 	_conn *grpc.ClientConn
 )
 
-func idsFromFile(fname string) ([]string, int) {
-	log.Print("reading ids from file...")
+func idsFromDB() ([]string, int) {
+	log.Print("reading ids from database...")
 
-	content, err := ioutil.ReadFile(fname)
-	if err != nil {
-		log.Print("cannot open ids.txt file")
-		return nil, 0
+	connStr := os.Getenv("MYSQL_CONN_STRING")
+	if connStr == "" {
+		connStr = "demo:demo@tcp(192.168.39.1:3306)/demo?tls=skip-verify&autocommit=true"
 	}
 
-	lines := strings.Split(string(content), "\n")
+	log.Printf("MYSQL conn string is %s", connStr)
+	db, err := sql.Open("mysql", connStr)
+	if err != nil {
+		log.Printf("Unable to connect to database with %s", connStr)
+
+		return []string{"10001000"}, 1
+	}
+
+	rows, err := db.Query("select account_id from demo.casa_account")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	var lines []string
+	var id string
+	for rows.Next() {
+
+		err := rows.Scan(&id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		lines = append(lines, id)
+	}
+
 	return lines, len(lines)
 }
 
 func randID() func() string {
-	ids, size := idsFromFile(IDFile)
+	ids, size := idsFromDB()
 	log.Printf("using a pool of %s ids", humanize.Comma(int64(size)))
 
 	rs := rand.NewSource(time.Now().UnixNano())

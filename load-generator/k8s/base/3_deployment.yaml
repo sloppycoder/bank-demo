@@ -21,3 +21,8 @@ spec:
               value: "10"
             - name: BOOM_PARAMS
               value: "--max-rps 1000"
+            - name: MYSQL_CONN_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: demo-secret
+                  key: mysql-conn-string

@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/asaskevich/EventBus v0.0.0-20200428142821-4fc0642a29f3 // indirect
 	github.com/dustin/go-humanize v1.0.0
+	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/protobuf v1.4.1
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/myzhan/boomer v0.0.0-20200609110909-901d7fa78bb8

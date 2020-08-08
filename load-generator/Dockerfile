@@ -19,7 +19,7 @@ FROM base
 COPY --from=builder /install /
 COPY --from=builder2 /build/slave /
 
-COPY entrypoint.sh *.py ids.txt /
+COPY entrypoint.sh *.py /
 
 EXPOSE 8089
 ENTRYPOINT ./entrypoint.sh
