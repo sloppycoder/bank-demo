@@ -1,0 +1,20 @@
+resources:
+- ../../base
+
+namespace: breeze
+
+images:
+  - name: gcr.io/vino9-276317/demo-bank/dashboard
+    newTag: latest
+    newName: sloppycoder/bankdemo-dashboard
+
+patchesJson6902:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: dashboard
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/0
+        value: { "name": "ZIPKIN_COLLECTOR_URL", "value": "http://zipkin.istio-system:9411/api/v2/spans" }
