@@ -1,13 +1,10 @@
 import argparse
-import configparser
 import datetime
 import re
 import sys
 import time
+import mysql.connector
 from mimesis import Generic, random
-from cassandra.cluster import Cluster
-from cassandra.auth import PlainTextAuthProvider
-from cassandra import DriverException
 
 PRODUCTS = [
     ['1001', 'Super Saver Account'],
@@ -20,6 +17,14 @@ NUM_OF_PRODUCTS = len(PRODUCTS)
 
 all_account_ids = {}
 
+
+db_conf = {
+    'user': 'demo',
+    'password': 'demo',
+    'host': '192.168.39.1',
+    'database': 'demo',
+    'raise_on_warnings': True
+}
 
 class Balance:
     def __init__(self, amount, type, last_updated):
@@ -34,7 +39,7 @@ def unique_account_id(g):
     # use telephone to proxy an account number
     for i in range(10):
         if i > 1:
-            num = re.sub(r"\+|\-|\(|\)|\.|\s", '', g.person.telephone())
+            num = re.sub(r'\+|\-|\(|\)|\.|\s', '', g.person.telephone())
         else:
             # always use this account number for 1st account
             # it it hardcoded in some places, so it must exist
@@ -52,39 +57,42 @@ def random_product(rand):
 
 
 def gen_random_accounts(sess, n):
+    batch_size = 1000
     success, fail = 0, 0
     g = Generic('en')
     r = random.Random()
     ts_base = int(time.mktime(datetime.date(2019, 1, 1).timetuple()))
 
-    insert_stmt = sess.prepare('''
-    INSERT INTO casa_account(account_id, nickname, prod_code, prod_name, 
-                             currency, status, status_last_updated, balances)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''')
+    insert_stmt = '''
+insert into casa_account (account_id, nick_name, prod_code, prod_name, currency, status, balance)
+values (?, ?, ?, ?, ?, ?, ?)
+    '''
 
+    cur = sess.cursor(prepared=True)
     for i in range(n):
         account_id = unique_account_id(g)
         prod_code, prod_name = random_product(r)
         balance = r.uniform(1000.0, 5_000_000.0, 4)
-        ts = int(r.uniform(0, 15_724_800, 0))  # 3600 * 24 * 182
-        update_dt = datetime.datetime.fromtimestamp(ts_base + ts)
+        # ts = int(r.uniform(0, 15_724_800, 0))  # 3600 * 24 * 182
+        # update_dt = datetime.datetime.fromtimestamp(ts_base + ts)
         # print(update_dt)
         try:
-            sess.execute(insert_stmt,
-                         [account_id, g.person.name(), prod_code, prod_name, 'THB', 0, update_dt,
-                          {Balance(balance, 0, update_dt), Balance(balance, 1, update_dt)}])
-            success += 1
-        except DriverException as e:
+            val = (account_id, g.person.name(), prod_code, prod_name, 'THB', 0, balance)
+            cur.execute(insert_stmt, val)
+
+            if i % batch_size == 0 or i == n-1:
+                sess.commit()
+                success += batch_size
+                print(f'commiting {batch_size} records, total records = {success}')
+
+        except mysql.connector.Error as e:
             print(e)
-            fail += 1
 
     return success, fail
 
 
 def populate_testdata(n, force_drop):
     sess = create_session()
-    sess.execute('use vino9')
     print_db_version(sess)
     # sys.exit(0)
     if force_drop:
@@ -92,85 +100,51 @@ def populate_testdata(n, force_drop):
 
     success, fail = gen_random_accounts(sess, n)
     with open('ids.txt', 'w') as f:
-        f.writelines("%s\n" % id for id in all_account_ids)
+        f.writelines('%s\n' % id for id in all_account_ids)
     print(f'success={success}, fail={fail}, uniq_id={len(all_account_ids)}, accounts_in_db={accounts_in_db(sess)})')
 
-    sess.cluster.shutdown()
+    sess.disconnect()
 
 
 def drop_and_recreate_table(sess):
     # drop existing table and UDT
-    sess.execute('DROP TABLE IF EXISTS casa_account')
-    sess.execute('DROP TYPE IF EXISTS balance')
+    cur = sess.cursor()
+    cur.execute('DROP TABLE IF EXISTS casa_account')
     # recreate
-    sess.execute(''' 
-    CREATE TYPE IF NOT EXISTS balance (
-        amount float,
-        credit boolean,
-        type smallint,
-        last_updated timestamp
-    )
+    cur.execute('''
+create table casa_account
+(
+    account_id varchar(255) not null,
+    nick_name  varchar(255) not null,
+    prod_code  varchar(255) not null,
+    prod_name  varchar(255) not null,
+    currency   varchar(3)   not null,
+    status     int          not null,
+    balance    float        not null,
+    constraint account_id   unique (account_id)
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4
     ''')
-    sess.execute('''
-    CREATE TABLE casa_account(
-        account_id text,
-        nickname text, 
-        prod_code text,
-        prod_name text,
-        currency text,
-        status smallint,
-        status_last_updated timestamp,
-        balances set<frozen<balance>>,
-        PRIMARY KEY(account_id)
-    )
-    ''')
-
-
-def read_env(env: str) -> dict:
-    with open(env, 'r') as f:
-        config_string = '[root]\n' + f.read()
-    config = configparser.ConfigParser()
-    config.read_string(config_string)
-    return dict([(k, config.get('root', k)) for k in config.options('root')])
 
 
 def create_session():
-    config = read_env('../cassandra.env')
-    print('connect to cassandra instance %s' % config["instance"])
-    if config['instance'] == 'astra':
-        cluster = Cluster(
-            cloud={'secure_connect_bundle': '../secure-connect-vino9.zip'},
-            auth_provider=PlainTextAuthProvider(config['username'], config['password']))
-        return cluster.connect()
-    elif config['instance'] == 'local':
-        cluster = Cluster([config['host']], port=int(config['port']))
-        return cluster.connect('vino9')
-    else:
-        print('unknown cassandra instance %s, abort.' % config["instance"])
-        sys.exit(1)
+    return mysql.connector.connect(**db_conf)
 
 
 def print_db_version(sess):
-    row = sess.execute("select release_version from system.local").one()
-    if row:
-        print('connected to cassandra version ', row[0])
-    else:
-        print('something is wrong with the session')
+    print(sess.get_server_version())
 
 
 def accounts_in_db(sess):
-    row = sess.execute("select count(*) from casa_account").one()
-    if row:
-        return row[0]
-    else:
-        return None
+    cur = sess.cursor()
+    cur.execute('select count(*) from casa_account')
+    return cur.rowcount
 
 
 def init_argparse():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-v", "--version", action="version",
-        version=f"{parser.prog} version 1.0.0"
+        '-v', '--version', action='version',
+        version=f'{parser.prog} version 1.0.0'
     )
     parser.add_argument('files', nargs='*')
     return parser

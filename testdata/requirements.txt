@@ -4,9 +4,11 @@
 #
 #    pip-compile --output-file=requirements.txt requirements.in
 #
-cassandra-driver==3.24.0  # via -r requirements.in
-click==7.1.2              # via geomet
-geomet==0.1.2             # via cassandra-driver
 lz4==3.1.0                # via -r requirements.in
 mimesis==4.0.0            # via -r requirements.in
-six==1.15.0               # via cassandra-driver, geomet
+mysql-connector-python==8.0.21  # via -r requirements.in
+protobuf==3.12.4          # via mysql-connector-python
+six==1.15.0               # via protobuf
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools
