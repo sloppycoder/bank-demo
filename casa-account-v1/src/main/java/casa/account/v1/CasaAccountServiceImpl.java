@@ -1,5 +1,6 @@
 package casa.account.v1;
 
+import com.google.common.collect.ImmutableSet;
 import demo.bank.Balance;
 import demo.bank.CasaAccount;
 import demo.bank.CasaAccountServiceGrpc;
@@ -15,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Optional;
-import java.util.Set;
 
 @Singleton
 public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountServiceImplBase {
@@ -52,7 +52,7 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
 
     span.end();
 
-    if (result.isEmpty()) {
+    if (!result.isPresent()) {
       logger.info("casa account {} not found", accountId);
 
       responseObserver.onError(
@@ -84,7 +84,7 @@ public class CasaAccountServiceImpl extends CasaAccountServiceGrpc.CasaAccountSe
             .setProdName(row.getProdName())
             .setCurrency(row.getCurrency())
             .setStatus(CasaAccount.Status.forNumber(row.getStatus()))
-            .addAllBalances(Set.of(bal1, bal2))
+            .addAllBalances(ImmutableSet.of(bal1, bal2))
             .build();
 
     responseObserver.onNext(casaAccount);

@@ -4,7 +4,6 @@ micronaut:
 
 grpc:
   server:
-    port: 50051
     keep-alive-time: 3h
 
 tracing:
