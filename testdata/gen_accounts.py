@@ -38,13 +38,7 @@ def unique_account_id(g):
     # try generate a unique account number for 10 times
     # use telephone to proxy an account number
     for i in range(10):
-        if i > 1:
-            num = re.sub(r'\+|\-|\(|\)|\.|\s', '', g.person.telephone())
-        else:
-            # always use this account number for 1st account
-            # it it hardcoded in some places, so it must exist
-            num = '10001000'
-
+        num = re.sub(r'\+|\-|\(|\)|\.|\s', '', g.person.telephone())
         if num not in all_account_ids:
             all_account_ids[num] = 1
             return num
@@ -69,7 +63,7 @@ values (?, ?, ?, ?, ?, ?, ?)
     '''
 
     cur = sess.cursor(prepared=True)
-    for i in range(n):
+    for i in range(1, n+1):
         account_id = unique_account_id(g)
         prod_code, prod_name = random_product(r)
         balance = r.uniform(1000.0, 5_000_000.0, 4)
@@ -79,11 +73,11 @@ values (?, ?, ?, ?, ?, ?, ?)
         try:
             val = (account_id, g.person.name(), prod_code, prod_name, 'THB', 0, balance)
             cur.execute(insert_stmt, val)
+            success += 1
 
-            if i % batch_size == 0 or i == n-1:
+            if i % batch_size == 0 or i == n:
                 sess.commit()
-                success += batch_size
-                print(f'commiting {batch_size} records, total records = {success}')
+                print(f'commit, total records = {success}')
 
         except mysql.connector.Error as e:
             print(e)
@@ -99,8 +93,6 @@ def populate_testdata(n, force_drop):
         drop_and_recreate_table(sess)
 
     success, fail = gen_random_accounts(sess, n)
-    with open('ids.txt', 'w') as f:
-        f.writelines('%s\n' % id for id in all_account_ids)
     print(f'success={success}, fail={fail}, uniq_id={len(all_account_ids)}, accounts_in_db={accounts_in_db(sess)})')
 
     sess.disconnect()
@@ -142,7 +134,8 @@ def print_db_version(sess):
 def accounts_in_db(sess):
     cur = sess.cursor()
     cur.execute('select count(*) from casa_account')
-    return cur.rowcount
+    row = cur.fetchone()
+    return row[0]
 
 
 def init_argparse():
