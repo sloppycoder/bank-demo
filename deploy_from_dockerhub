@@ -6,6 +6,7 @@ if [ -z "$APP_NAMESPACE" ]; then
     exit 1
 fi
 
+# create the scecret for database credentials
 kustomize build . | kubectl apply  -n $APP_NAMESPACE -f -  
 
 kustomize build dashboard/k8s/envs/nobuild        | kubectl apply -f -
@@ -20,3 +21,6 @@ fi
 
 kubectl config set-context --current --namespace $APP_NAMESPACE
 kubectl get pods
+
+# deploy istio configs
+kustomize build istio/k8s/envs/nobuild     | kubectl apply -f -
