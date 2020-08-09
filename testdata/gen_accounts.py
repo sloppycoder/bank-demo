@@ -109,7 +109,12 @@ def populate_testdata(n, force_drop):
 def drop_and_recreate_table(sess):
     # drop existing table and UDT
     cur = sess.cursor()
-    cur.execute('DROP TABLE IF EXISTS casa_account')
+
+    try:
+        cur.execute('DROP TABLE IF EXISTS casa_account')
+    except mysql.connector.Error as e:
+        print(e)
+
     # recreate
     cur.execute('''
 create table casa_account
