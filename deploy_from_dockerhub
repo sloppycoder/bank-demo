@@ -23,4 +23,4 @@ kubectl config set-context --current --namespace $APP_NAMESPACE
 kubectl get pods
 
 # deploy istio configs
-kustomize build istio/k8s/envs/nobuild     | kubectl apply -f -
+kustomize build istio/envs/nobuild     | kubectl apply -f -
