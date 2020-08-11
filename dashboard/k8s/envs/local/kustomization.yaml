@@ -13,3 +13,7 @@ patchesJson6902:
       - op: add
         path: /spec/template/spec/containers/0/env/0
         value: { "name": "ZIPKIN_COLLECTOR_URL", "value": "http://zipkin.istio-system:9411/api/v2/spans" }
+        # value: { "name": "USE_STACKDRIVER", "value": "yes" }
+      - op: add
+        path: /spec/template/spec/containers/0/env/1
+        value: { "name": "APP_LOG_LEVEL", "value": "ERROR" }
