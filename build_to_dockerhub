@@ -9,8 +9,8 @@ docker push sloppycoder/bankdemo-load-generator:mysql-latest
 cd ..
 
 cd casa-account-v2
-docker build --tag sloppycoder/bankdemo-casa-account-v2:mysql-latest .
-docker push sloppycoder/bankdemo-casa-account-v2:mysql-latest 
+docker build --tag sloppycoder/bankdemo-casa-account-v2:latest .
+docker push sloppycoder/bankdemo-casa-account-v2:latest 
 cd ..
 
 cd dashboard
