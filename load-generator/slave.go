@@ -70,6 +70,10 @@ func idsFromDB() ([]string, int) {
 		lines = append(lines, id)
 	}
 
+	if len(lines) < 1 {
+		return []string{"10001000"}, 1
+	}
+
 	return lines, len(lines)
 }
 
