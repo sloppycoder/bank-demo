@@ -23,7 +23,7 @@ patchesJson6902:
         value: { "name": "EXTERNAL_CUSTOMER_URL", "value": "http://ext-cust-svc:8080/customers" }
       - op: add
         path: /spec/template/spec/containers/0/env/2
-        value: { "name": "LOG_LEVEL_ROOT", "value": "ERROR" }
+        value: { "name": "LOGGING_LEVEL_ROOT", "value": "ERROR" }
 
     # patch: |-
     #   - op: add
