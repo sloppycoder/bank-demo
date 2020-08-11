@@ -11,7 +11,7 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="info">
+        <Root level="${env:APP_LOG_LEVEL}">
             <AppenderRef ref="Console"/>
         </Root>
     </Loggers>

@@ -13,6 +13,9 @@ patchesJson6902:
       - op: add
         path: /spec/template/spec/containers/0/env/0
         value: { "name": "TRACING_USE_STACKDRIVER", "value": "yes" }
+      - op: add
+        path: /spec/template/spec/containers/0/env/1
+        value: { "name": "APP_LOG_LEVEL", "value": "info" }
 
 # the environment variable name must match application.yml setting
 # in order to override it
