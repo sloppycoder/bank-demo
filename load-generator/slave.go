@@ -106,14 +106,14 @@ func setupGrpcAPI(name string, getRandID func() string) func() {
 		if err != nil {
 			log.Printf("account %s got error %s", loginID, err)
 			boomer.RecordFailure(
-				"http",
+				"gRPC",
 				name,
 				elapsed.Nanoseconds()/int64(time.Millisecond),
 				err.Error(),
 			)
 		} else {
 			boomer.RecordSuccess(
-				"http",
+				"gRPC",
 				name,
 				elapsed.Nanoseconds()/int64(time.Millisecond),
 				int64(10),
@@ -165,7 +165,7 @@ func main() {
 	task := &boomer.Task{
 		Name:   "dash",
 		Weight: 100,
-		Fn:     setupGrpcAPI("gRPC dashboard api", randID()),
+		Fn:     setupGrpcAPI("GetDashboard", randID()),
 	}
 
 	boomer.Run(task)
