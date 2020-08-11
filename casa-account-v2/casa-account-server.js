@@ -50,11 +50,11 @@ function initZipkinTracing() {
             },
         ],
         bufferTimeout: 10, // time in milliseconds
-        logger: logger.logger("info"),
+        logger: logger.logger("error"),
     });
 
     tracing.registerExporter(exporter).start({
-        samplingRate: 1,
+        samplingRate: 0.1,
         logLevel: 1,
     });
 
