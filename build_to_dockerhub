@@ -14,8 +14,8 @@ docker push sloppycoder/bankdemo-casa-account-v2:latest
 cd ..
 
 cd dashboard
-docker build --tag sloppycoder/dashboard:latest .
-docker push sloppycoder/dashboard:latest 
+docker build --tag sloppycoder/bankdemo-dashboard:latest .
+docker push sloppycoder/bankdemo-dashboard:latest 
 cd ..
 
 cd ext-cust-svc
