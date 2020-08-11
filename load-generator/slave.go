@@ -51,7 +51,10 @@ func idsFromDB() ([]string, int) {
 	db := connectToDB()
 	rows, err := db.Query("select account_id from demo.casa_account")
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Unable to retrieve account id from database %v", err)
+		// always return a dummy account, this enables running test in environments
+		// where database is not used
+		return []string{"10001000"}, 1
 	}
 	defer rows.Close()
 
