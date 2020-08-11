@@ -41,7 +41,7 @@ func connectToDB() *sql.DB {
 		time.Sleep(2 * time.Second)
 	}
 
-	log.Fatal("Unable to connect to database, abort.")
+	log.Print("Unable to connect to database")
 	return nil
 }
 
@@ -49,25 +49,25 @@ func idsFromDB() ([]string, int) {
 	log.Print("reading ids from database...")
 
 	db := connectToDB()
-	rows, err := db.Query("select account_id from demo.casa_account")
-	if err != nil {
-		log.Printf("Unable to retrieve account id from database %v", err)
-		// always return a dummy account, this enables running test in environments
-		// where database is not used
+	if db == nil {
 		return []string{"10001000"}, 1
 	}
+
+	rows, err := db.Query("select account_id from demo.casa_account")
 	defer rows.Close()
 
 	var lines []string
 	var id string
-	for rows.Next() {
+	if err == nil {
+		for rows.Next() {
 
-		err := rows.Scan(&id)
-		if err != nil {
-			log.Fatal(err)
+			err := rows.Scan(&id)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			lines = append(lines, id)
 		}
-
-		lines = append(lines, id)
 	}
 
 	if len(lines) < 1 {
