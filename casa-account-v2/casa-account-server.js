@@ -10,7 +10,7 @@ const useStackdriver = (() => {
 if (useStackdriver) {
     require("@google-cloud/trace-agent").start({
         samplingRate: 1000, // max that GCP allows
-        logLevel: 3, // info
+        logLevel: 1, // 1=error, 2=warn, 3=info
     });
     console.log("google cloud trace agent initialized");
 }
@@ -117,7 +117,7 @@ function dummyCasaAccount(call, callback) {
         api.CasaAccount
     );
 
-    console.log("returning dummy account data");
+    // console.log("returning dummy account data");
 
     callback(null, dummy);
 }
