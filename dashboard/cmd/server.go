@@ -11,7 +11,11 @@ import (
 func initLogging() {
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
-	log.SetLevel(log.InfoLevel)
+	level, err := log.ParseLevel(os.Getenv("APP_LOG_LEVEL"))
+	if err != nil {
+		level = log.InfoLevel
+	}
+	log.SetLevel(level)
 }
 
 func startServer() {
