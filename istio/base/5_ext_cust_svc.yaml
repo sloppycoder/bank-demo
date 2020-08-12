@@ -8,9 +8,9 @@ spec:
   http:
     - fault:
         delay:
-          fixedDelay: 3s
+          fixedDelay: 10ms
           percentage:
-            value: 10
+            value: 0
       route:
         - destination:
             host: ext-cust-svc            
