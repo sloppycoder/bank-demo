@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"load-generator/api"
 	"log"
 	"math/rand"
@@ -46,13 +47,12 @@ func connectToDB() *sql.DB {
 }
 
 func idsFromDB() ([]string, int) {
-	log.Print("reading ids from database...")
-
-	db := connectToDB()
-	if db == nil {
+	if os.Getenv("USE_DUMMY_ID") == "true" {
 		return []string{"10001000"}, 1
 	}
 
+	log.Print("reading ids from database...")
+	db := connectToDB()
 	rows, err := db.Query("select account_id from demo.casa_account")
 	defer rows.Close()
 
@@ -60,18 +60,12 @@ func idsFromDB() ([]string, int) {
 	var id string
 	if err == nil {
 		for rows.Next() {
-
 			err := rows.Scan(&id)
 			if err != nil {
 				log.Fatal(err)
 			}
-
 			lines = append(lines, id)
 		}
-	}
-
-	if len(lines) < 1 {
-		return []string{"10001000"}, 1
 	}
 
 	return lines, len(lines)
@@ -94,27 +88,32 @@ func randID() func() string {
 	}
 }
 
-func setupGrpcAPI(name string, getRandID func() string) func() {
-	log.Print("setting up gRPC API test")
+func setupGrpcAPI(api string, getRandID func() string) func() {
+	log.Printf("setting up gRPC API %s for test", api)
 
 	return func() {
+		conn, err := getConnection(api)
+		if err != nil {
+			log.Panicf("Unable to connect to ")
+		}
+
 		start := time.Now()
 		loginID := getRandID()
-		err := callDashboardSvc(loginID)
+		err = invokeApi(conn, api, loginID)
 		elapsed := time.Since(start)
 
 		if err != nil {
 			log.Printf("account %s got error %s", loginID, err)
 			boomer.RecordFailure(
 				"gRPC",
-				name,
+				api,
 				elapsed.Nanoseconds()/int64(time.Millisecond),
 				err.Error(),
 			)
 		} else {
 			boomer.RecordSuccess(
 				"gRPC",
-				name,
+				api,
 				elapsed.Nanoseconds()/int64(time.Millisecond),
 				int64(10),
 			)
@@ -122,34 +121,43 @@ func setupGrpcAPI(name string, getRandID func() string) func() {
 	}
 }
 
-func callDashboardSvc(loginName string) error {
-	conn, err := getConnection()
-	if err != nil {
-		return err
-	}
-
+func invokeApi(conn *grpc.ClientConn, apiName, id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	client := api.NewDashboardServiceClient(conn)
-	if _, err = client.GetDashboard(ctx, &api.GetDashboardRequest{
-		LoginName: loginName,
-	}); err != nil {
-		return err
+	var err error
+	switch apiName {
+	case "dashboard":
+		client := api.NewDashboardServiceClient(conn)
+		_, err = client.GetDashboard(ctx, &api.GetDashboardRequest{LoginName: id})
+	case "customer":
+		client := api.NewCustomerServiceClient(conn)
+		_, err = client.GetCustomer(ctx, &api.GetCustomerRequest{CustomerId: id})
+	case "casa":
+		client := api.NewCasaAccountServiceClient(conn)
+		_, err = client.GetAccount(ctx, &api.GetCasaAccountRequest{AccountId: id})
+	default:
+		err = errors.New("invalid api")
 	}
-
-	return nil
+	return err
 }
 
-func getConnection() (*grpc.ClientConn, error) {
+func getConnection(apiName string) (*grpc.ClientConn, error) {
 	// TODO: should add some retry mechanism for wait for Transient Error and Connecting states
 	if _conn != nil && _conn.GetState() != connectivity.Shutdown {
 		return _conn, nil
 	}
 
-	svcAddr := os.Getenv("DASHBOARD_SVC_ADDR")
+	svcAddr := os.Getenv("SVC_ADDR")
 	if svcAddr == "" {
-		svcAddr = "dashboard:50051"
+		switch apiName {
+		case "customer":
+			svcAddr = "customer:50051"
+		case "casa":
+			svcAddr = "casa-account:50051"
+		default:
+			svcAddr = "dashboard:50051"
+		}
 	}
 
 	conn, err := grpc.Dial(svcAddr, grpc.WithInsecure())
@@ -162,10 +170,15 @@ func getConnection() (*grpc.ClientConn, error) {
 }
 
 func main() {
+	apiName := os.Getenv("TARGET_API")
+	if apiName == "" {
+		apiName = "dashboard"
+	}
+
 	task := &boomer.Task{
-		Name:   "dash",
+		Name:   "grpc",
 		Weight: 100,
-		Fn:     setupGrpcAPI("GetDashboard", randID()),
+		Fn:     setupGrpcAPI(apiName, randID()),
 	}
 
 	boomer.Run(task)

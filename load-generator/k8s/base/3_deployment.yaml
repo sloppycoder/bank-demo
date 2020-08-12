@@ -15,12 +15,14 @@ spec:
         - name: locust
           image: gcr.io/vino9-276317/demo-bank/load-generator
           env:
-            - name: DASHBOARD_SVC_ADDR
+            - name: SVC_ADDR
               value: "dashboard:50051"
             - name: USERS
               value: "10"
             - name: BOOM_PARAMS
               value: "--max-rps 3000"
+            - name: USE_DUMMY_ID
+              value: "false"
             - name: MYSQL_CONN_STRING
               valueFrom:
                 secretKeyRef:
