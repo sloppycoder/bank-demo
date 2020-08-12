@@ -35,6 +35,8 @@ spec:
               value: ":50051"
             - name: METRIC_HTTP_ADDR
               value: ":8080"
+            - name: APP_LOG_LEVEL
+              value: "error"
           readinessProbe:
             exec:
               command: ["/grpc_health_probe", "-addr", "127.0.0.1:50051"]

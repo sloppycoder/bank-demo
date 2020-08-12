@@ -1,0 +1,9 @@
+bases:
+- ../../base
+
+namespace: breeze
+
+images:
+  - name: gcr.io/vino9-276317/demo-bank/ext-cust-svc
+    newTag: latest
+    newName: sloppycoder/bankdemo-ext-cust-svc

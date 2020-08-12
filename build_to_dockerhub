@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# use docker daemon to build all images and push to docker hub
+# requires docker and maven/java to run
+
+cd load-generator
+docker build --tag sloppycoder/bankdemo-load-generator:latest .
+docker push sloppycoder/bankdemo-load-generator:latest
+cd ..
+
+cd casa-account-v2
+docker build --tag sloppycoder/bankdemo-casa-account-v2:latest .
+docker push sloppycoder/bankdemo-casa-account-v2:latest 
+cd ..
+
+cd dashboard
+docker build --tag sloppycoder/bankdemo-dashboard:latest .
+docker push sloppycoder/bankdemo-dashboard:latest 
+cd ..
+
+cd ext-cust-svc
+docker build --tag sloppycoder/bankdemo-ext-cust-svc:latest .
+docker push sloppycoder/bankdemo-ext-cust-svc:latest 
+cd ..
+
+cd customer-v1
+mvn compile jib:dockerBuild -Djib.to.image=sloppycoder/bankdemo-customer-v1:latest -Pjib
+docker push sloppycoder/bankdemo-customer-v1:latest
+cd ..
+
+cd casa-account-v1
+./gradlew jibDockerBuild -Djib.to.image=sloppycoder/bankdemo-casa-account-v1:latest
+docker push sloppycoder/bankdemo-casa-account-v1:latest
+cd ..

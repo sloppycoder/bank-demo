@@ -1,0 +1,21 @@
+resources:
+- ../../base
+
+namespace: breeze
+
+images:
+  - name: gcr.io/vino9-276317/demo-bank/casa-account-v1
+    newTag: latest
+    newName: sloppycoder/bankdemo-casa-account-v1
+
+patchesJson6902:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: casa-account-v1
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/0
+        value: { "name": "TRACING_JAEGER_ENDPOINT", "value": "http://jaeger-collector.istio-system:14268/api/traces" }
+        # value: { "name": "TRACING_USE_STACKDRIVER", "value": "yes" }

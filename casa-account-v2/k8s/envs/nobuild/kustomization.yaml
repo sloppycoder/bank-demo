@@ -1,0 +1,21 @@
+resources:
+  - ../../base
+
+namespace: breeze
+
+images:
+  - name: gcr.io/vino9-276317/demo-bank/casa-account-v2
+    newTag: latest
+    newName: sloppycoder/bankdemo-casa-account-v2
+
+patchesJson6902:
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: casa-account-v2
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/env/0
+      value: { "name": "ZIPKIN_COLLECTOR_URL", "value": "http://zipkin.istio-system:9411/api/v2/spans" }
+      # value: { "name": "USE_STACKDRIVER", "value": "yes" }
