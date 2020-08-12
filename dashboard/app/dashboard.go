@@ -133,11 +133,9 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 			return getCustomer(ctx, req.LoginName, dashboard)
 		})
 	}
-	if os.Getenv("USE_CASA_SVC") == "1" {
-		errs.Go(func() error {
-			return getCasaAccount(ctx, req.LoginName, dashboard)
-		})
-	}
+	errs.Go(func() error {
+		return getCasaAccount(ctx, req.LoginName, dashboard)
+	})
 	if err := errs.Wait(); err != nil {
 		return nil, status.New(codes.Code(code.Code_NOT_FOUND), "unable to load dashboard").Err()
 	}
@@ -146,6 +144,11 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 }
 
 func getCasaAccount(ctx context.Context, accountID string, dashboard *api.Dashboard) error {
+	if os.Getenv("USE_CASA_SVC") == "0" {
+		dashboard.Casa = []*api.CasaAccount{&api.CasaAccount{AccountId: "skip"}}
+		return nil
+	}
+
 	conn, err := getCasaConnection(ctx)
 	if err != nil {
 		return err
@@ -166,6 +169,11 @@ func getCasaAccount(ctx context.Context, accountID string, dashboard *api.Dashbo
 }
 
 func getCustomer(ctx context.Context, custID string, dashboard *api.Dashboard) error {
+	if os.Getenv("USE_CUST_SVC") == "0" {
+		dashboard.Customer = &api.Customer{LoginName: "skip"}
+		return nil
+	}
+
 	conn, err := getCustomerConnection(ctx)
 	if err != nil {
 		return err
