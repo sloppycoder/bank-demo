@@ -46,6 +46,12 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-sleuth</artifactId>
         </dependency>
+        <!-- provides major performance boot over default http client -->
+        <dependency>
+            <groupId>io.freefair.okhttp-spring-boot</groupId>
+            <artifactId>okhttp3-spring-boot-starter</artifactId>
+            <version>2.2.5</version>
+        </dependency>
         <!-- zipkin is used in local istio installation -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -166,7 +172,8 @@
                         <configuration>
                             <container>
                                 <jvmFlags>
-                                    <jvmFlag>-mx256m</jvmFlag>
+                                    <jvmFlag>-ms256m</jvmFlag>
+                                    <jvmFlag>-mx512m</jvmFlag>
                                     <jvmFlag>-XX:+ExitOnOutOfMemoryError</jvmFlag>
                                     <jvmFlag>-Djava.security.egd=file:/dev/./urandom</jvmFlag>
                                 </jvmFlags>
