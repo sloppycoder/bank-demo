@@ -15,9 +15,11 @@ spec:
         - name: locust
           image: gcr.io/vino9-276317/demo-bank/load-generator
           env:
-            - name: DASHBOARD_SVC_ADDR
-              value: "dashboard:50051"
+            - name: TARGET_API
+              value: "dashboard"
             - name: USERS
               value: "10"
             - name: BOOM_PARAMS
-              value: "--max-rps 1000"
+              value: "--max-rps 3000"
+            - name: USE_DUMMY_ID
+              value: "false"
