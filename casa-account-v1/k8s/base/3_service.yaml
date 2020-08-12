@@ -44,8 +44,8 @@ spec:
                   key: mysql-password
           resources:
             requests:
-              cpu: 250m
-              memory: 192Mi
+              cpu: 500m
+              memory: 384Mi
             limits:
               cpu: 1000m
               memory: 384Mi

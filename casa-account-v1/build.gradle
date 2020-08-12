@@ -80,7 +80,7 @@ jib {
     }
     container {
         jvmFlags = [ 
-          '-Xms128m',
+          '-Xms256m',
           '-Xmx512m',
           '-Dlog4j2.contextDataInjector=io.opencensus.contrib.logcorrelation.log4j2.OpenCensusTraceContextDataInjector'
         ]
