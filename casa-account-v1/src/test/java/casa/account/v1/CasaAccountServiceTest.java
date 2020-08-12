@@ -11,14 +11,13 @@ import org.junit.jupiter.api.Test;
 import javax.inject.Inject;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @MicronautTest
 public class CasaAccountServiceTest {
   @Inject CasaAccountServiceGrpc.CasaAccountServiceBlockingStub stub;
 
-  // if needs a database setup to work, ignore for now
+  // needs a database setup to work, ignore for now
   @Disabled
   @Test
   void canGetDummyAccount() {
@@ -33,7 +32,7 @@ public class CasaAccountServiceTest {
     assertEquals(sureFireAccountId, response.getAccountId());
     assertEquals(CasaAccount.Status.ACTIVE, response.getStatus());
 
-    Set.of(Balance.Type.values()).contains(response.getBalances(0).getType());
-    Set.of(Balance.Type.values()).contains(response.getBalances(1).getType());
+    assertTrue(Set.of(Balance.Type.values()).contains(response.getBalances(0).getType()));
+    assertTrue(Set.of(Balance.Type.values()).contains(response.getBalances(1).getType()));
   }
 }

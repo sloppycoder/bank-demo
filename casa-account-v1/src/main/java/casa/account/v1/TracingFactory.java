@@ -48,7 +48,7 @@ public class TracingFactory {
 
     TraceConfig traceConfig = Tracing.getTraceConfig();
     traceConfig.updateActiveTraceParams(
-        traceConfig.getActiveTraceParams().toBuilder().setSampler(Samplers.alwaysSample()).build());
+        traceConfig.getActiveTraceParams().toBuilder().setSampler(Samplers.probabilitySampler(0.1)).build());
 
     return Tracing.getTracer();
   }

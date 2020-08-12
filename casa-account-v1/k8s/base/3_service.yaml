@@ -27,6 +27,8 @@ spec:
           env:
             - name: GRPC_LISTEN_ADDR
               value: ":50051"
+            - name: APP_LOG_LEVEL
+              value: "error"
             - name: CASSANDRA_USERNAME
               valueFrom:
                 secretKeyRef:
