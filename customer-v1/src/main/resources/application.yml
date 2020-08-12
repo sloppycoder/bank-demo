@@ -5,7 +5,7 @@ spring:
     grpc:
       enabled: true
     sampler:
-      probability: 1.0
+      probability: 0.1
   zipkin:
     enabled: ${TRACE_WITH_ZIPKIN:false}
     base-url: http://zipkin.istio-system:9411
