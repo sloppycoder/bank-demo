@@ -132,7 +132,7 @@ func InitTracing() {
 
 	if exporterAvailable {
 		trace.ApplyConfig(trace.Config{
-			DefaultSampler: trace.ProbabilitySampler(10.0),
+			DefaultSampler: trace.ProbabilitySampler(0.1),
 		})
 	}
 
