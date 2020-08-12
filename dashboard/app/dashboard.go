@@ -128,11 +128,9 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 	dashboard := &api.Dashboard{}
 
 	errs, ctx := errgroup.WithContext(ctx)
-	if os.Getenv("USE_CUST_SVC") == "1" {
-		errs.Go(func() error {
-			return getCustomer(ctx, req.LoginName, dashboard)
-		})
-	}
+	errs.Go(func() error {
+		return getCustomer(ctx, req.LoginName, dashboard)
+	})
 	errs.Go(func() error {
 		return getCasaAccount(ctx, req.LoginName, dashboard)
 	})
