@@ -142,7 +142,7 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 }
 
 func getCasaAccount(ctx context.Context, accountID string, dashboard *api.Dashboard) error {
-	if os.Getenv("USE_CASA_SVC") == "0" {
+	if os.Getenv("USE_CASA_SVC") == "false" {
 		dashboard.Casa = []*api.CasaAccount{&api.CasaAccount{AccountId: "skip"}}
 		return nil
 	}
@@ -167,7 +167,7 @@ func getCasaAccount(ctx context.Context, accountID string, dashboard *api.Dashbo
 }
 
 func getCustomer(ctx context.Context, custID string, dashboard *api.Dashboard) error {
-	if os.Getenv("USE_CUST_SVC") == "0" {
+	if os.Getenv("USE_CUST_SVC") == "false" {
 		dashboard.Customer = &api.Customer{LoginName: "skip"}
 		return nil
 	}
