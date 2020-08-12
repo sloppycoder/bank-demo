@@ -24,7 +24,7 @@ patchesJson6902:
         value: { "name": "APP_LOG_LEVEL", "value": "error" }
       - op: add
         path: /spec/template/spec/containers/0/env/2
-        value: { "name": "SKIP_CUST_SVC", "value": "1" }
+        value: { "name": "USE_CUST_SVC", "value": "1" }
       - op: add
         path: /spec/template/spec/containers/0/env/3
-        value: { "name": "SKIP_CASA_SVC", "value": "1" }
+        value: { "name": "USE_CASA_SVC", "value": "1" }
