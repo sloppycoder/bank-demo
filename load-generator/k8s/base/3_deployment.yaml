@@ -20,7 +20,7 @@ spec:
             - name: USERS
               value: "10"
             - name: BOOM_PARAMS
-              value: "--max-rps 1000"
+              value: "--max-rps 3000"
             - name: MYSQL_CONN_STRING
               valueFrom:
                 secretKeyRef:
