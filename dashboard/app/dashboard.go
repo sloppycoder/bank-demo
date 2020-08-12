@@ -128,12 +128,16 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 	dashboard := &api.Dashboard{}
 
 	errs, ctx := errgroup.WithContext(ctx)
-	errs.Go(func() error {
-		return getCustomer(ctx, req.LoginName, dashboard)
-	})
-	errs.Go(func() error {
-		return getCasaAccount(ctx, req.LoginName, dashboard)
-	})
+	if os.Getenv("SKIP_CUST_SVC") = "1" {
+		errs.Go(func() error {
+			return getCustomer(ctx, req.LoginName, dashboard)
+		})
+	}
+	if os.Getenv("SKIP_CASA_SVC") = "1" {
+			errs.Go(func() error {
+			return getCasaAccount(ctx, req.LoginName, dashboard)
+		})
+}
 	if err := errs.Wait(); err != nil {
 		return nil, status.New(codes.Code(code.Code_NOT_FOUND), "unable to load dashboard").Err()
 	}
