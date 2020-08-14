@@ -28,11 +28,11 @@ spec:
             - name: GRPC_LISTEN_ADDR
               value: ":50051"
             - name: APP_LOG_LEVEL
-              value: "info"
+              value: "warn"
             - name: USE_CUST_INFO
-              value: "false"
+              value: "true"
             - name: USE_CASA_INFO
-              value: "false"
+              value: "true"
             - name: ENABLE_PROFILE
               value: "false"
           readinessProbe:
