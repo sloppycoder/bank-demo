@@ -19,6 +19,8 @@ import (
 	"go.opencensus.io/trace"
 )
 
+const SampleRatio = 0.1
+
 func initZipkinExporter() *zipkin.Exporter {
 	collectorURL := os.Getenv("ZIPKIN_COLLECTOR_URL")
 	if collectorURL == "" {
@@ -132,7 +134,7 @@ func InitTracing() {
 
 	if exporterAvailable {
 		trace.ApplyConfig(trace.Config{
-			DefaultSampler: trace.ProbabilitySampler(0.1),
+			DefaultSampler: trace.ProbabilitySampler(SampleRatio),
 		})
 	}
 
