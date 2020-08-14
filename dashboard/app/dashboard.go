@@ -37,6 +37,7 @@ func newServerContext() *ServerContext {
 	serverCtx := &ServerContext{
 		mockCustSvc: true,
 		mockCasaSvc: true,
+		timeout:     5 * time.Second,
 	}
 
 	if os.Getenv("USE_CUST_SVC") != "false" {

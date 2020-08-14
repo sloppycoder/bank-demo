@@ -3,11 +3,14 @@ module dashboard
 go 1.14
 
 require (
+	cloud.google.com/go v0.45.1
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.1
 	contrib.go.opencensus.io/exporter/zipkin v0.1.1
 	github.com/golang/protobuf v1.4.0
+	github.com/google/pprof v0.0.0-20190515194954-54271f7e092f
 	github.com/openzipkin/zipkin-go v0.2.2
+	github.com/pkg/profile v1.2.1
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.4.0
 	go.opencensus.io v0.22.2
