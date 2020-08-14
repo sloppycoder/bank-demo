@@ -11,6 +11,12 @@
 function get_ingress_addr 
 {
     CTX=$(kubectl config current-context)
+
+    ISTIO=$(kubectl get namespaces | grep istio-system | wc -l )
+    if [ "$ISTIO" = "0" ]; then
+        return
+    fi
+
     case "$CTX" in
 
         "gke1")
