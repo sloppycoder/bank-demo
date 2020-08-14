@@ -6,14 +6,12 @@ import (
 	"os"
 	"time"
 
-	"golang.org/x/sync/errgroup"
-	"google.golang.org/genproto/googleapis/rpc/code"
-	"google.golang.org/grpc/connectivity"
-
 	log "github.com/sirupsen/logrus"
 	"go.opencensus.io/plugin/ocgrpc"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/trace"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/genproto/googleapis/rpc/code"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	health "google.golang.org/grpc/health/grpc_health_v1"
@@ -21,18 +19,49 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type Server struct {
-	api.UnimplementedDashboardServiceServer
+const (
+	StatsReportingPeriod = 60
+)
+
+type ServerContext struct {
+	casaSvcConn, custSvcConn *grpc.ClientConn
+	mockCustSvc, mockCasaSvc bool
+	timeout                  time.Duration
 }
 
-var (
-	_casaConn, _custConn *grpc.ClientConn
-)
+type Server struct {
+	context *ServerContext
+}
 
-const (
-	TimeoutForDownstreamApi = 5 * time.Second
-	StatsReportingPeriod    = 60
-)
+func newServerContext() *ServerContext {
+	serverCtx := &ServerContext{
+		mockCustSvc: true,
+		mockCasaSvc: true,
+		timeout:     5 * time.Second,
+	}
+
+	if os.Getenv("USE_CUST_SVC") != "false" {
+		conn, err := newCustomerConnection()
+		if err != nil {
+			log.Warnf("unable to create connection to customer service, %v", err)
+		} else {
+			serverCtx.custSvcConn = conn
+			serverCtx.mockCustSvc = false
+		}
+	}
+
+	if os.Getenv("USE_CASA_SVC") != "false" {
+		conn, err := newCasaConnection()
+		if err != nil {
+			log.Warnf("unable to create connection to casa-account service, %v", err)
+		} else {
+			serverCtx.casaSvcConn = conn
+			serverCtx.mockCasaSvc = false
+		}
+	}
+
+	return serverCtx
+}
 
 // helper for logging with trace and span id
 func info(ctx context.Context, args ...interface{}) {
@@ -44,34 +73,8 @@ func info(ctx context.Context, args ...interface{}) {
 	}
 }
 
-func warn(ctx context.Context, args ...interface{}) {
-	if span := trace.FromContext(ctx); span != nil {
-		log.WithFields(log.Fields{
-			"traceId": span.SpanContext().TraceID.String(),
-			"spanId":  span.SpanContext().SpanID.String(),
-		}).Warn(args...)
-	}
-}
-
-func getCustomerConnection(ctx context.Context) (*grpc.ClientConn, error) {
-	// TODO: should add some retry mechanism for wait for Transient Error and Connecting states
-	if _custConn != nil && _custConn.GetState() != connectivity.Shutdown {
-		info(ctx, "_custConn state = ", _custConn.GetState().String())
-		return _custConn, nil
-	}
-
-	conn, err := newCustomerConnection(ctx)
-	if err == nil {
-		_custConn = conn
-		return _custConn, nil
-	}
-
-	warn(ctx, "unable to create connection to customer service", err)
-	return nil, err
-}
-
-func newCustomerConnection(ctx context.Context) (*grpc.ClientConn, error) {
-	info(ctx, "Creating new connection for Customer Service")
+func newCustomerConnection() (*grpc.ClientConn, error) {
+	log.Info("Creating new connection for Customer Service")
 
 	addr := os.Getenv("CUSTOMER_SVC_ADDR")
 	if addr == "" {
@@ -84,25 +87,8 @@ func newCustomerConnection(ctx context.Context) (*grpc.ClientConn, error) {
 		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}))
 }
 
-func getCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
-	// TODO: should add some retry mechanism for wait for Transient Error and Connecting states
-	if _casaConn != nil && _casaConn.GetState() != connectivity.Shutdown {
-		info(ctx, "_casaConn state = ", _casaConn.GetState().String())
-		return _casaConn, nil
-	}
-
-	conn, err := newCasaConnection(ctx)
-	if err == nil {
-		_casaConn = conn
-		return _casaConn, nil
-	}
-
-	warn(ctx, "unable to create connection to casa account service", err)
-	return nil, err
-}
-
-func newCasaConnection(ctx context.Context) (*grpc.ClientConn, error) {
-	info(ctx, "Creating new connection for Casa Service")
+func newCasaConnection() (*grpc.ClientConn, error) {
+	log.Info("Creating new connection for Casa Service")
 
 	addr := os.Getenv("CASA_SVC_ADDR")
 	if addr == "" {
@@ -126,13 +112,22 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 	}
 
 	dashboard := &api.Dashboard{}
+	serverCtx := s.context
 
 	errs, ctx := errgroup.WithContext(ctx)
 	errs.Go(func() error {
-		return getCustomer(ctx, req.LoginName, dashboard)
+		if serverCtx.mockCustSvc {
+			dashboard.Customer = &api.Customer{LoginName: "skip"}
+			return nil
+		}
+		return getCustomer(ctx, s.context, req.LoginName, dashboard)
 	})
 	errs.Go(func() error {
-		return getCasaAccount(ctx, req.LoginName, dashboard)
+		if serverCtx.mockCasaSvc {
+			dashboard.Casa = []*api.CasaAccount{{AccountId: "skip"}}
+			return nil
+		}
+		return getCasaAccount(ctx, s.context, req.LoginName, dashboard)
 	})
 	if err := errs.Wait(); err != nil {
 		return nil, status.New(codes.Code(code.Code_NOT_FOUND), "unable to load dashboard").Err()
@@ -141,19 +136,9 @@ func (s *Server) GetDashboard(ctx context.Context, req *api.GetDashboardRequest)
 	return dashboard, nil
 }
 
-func getCasaAccount(ctx context.Context, accountID string, dashboard *api.Dashboard) error {
-	if os.Getenv("USE_CASA_SVC") == "false" {
-		dashboard.Casa = []*api.CasaAccount{&api.CasaAccount{AccountId: "skip"}}
-		return nil
-	}
-
-	conn, err := getCasaConnection(ctx)
-	if err != nil {
-		return err
-	}
-
-	c := api.NewCasaAccountServiceClient(conn)
-	subctx, cancel := context.WithTimeout(ctx, TimeoutForDownstreamApi)
+func getCasaAccount(ctx context.Context, serverCtx *ServerContext, accountID string, dashboard *api.Dashboard) error {
+	c := api.NewCasaAccountServiceClient(serverCtx.casaSvcConn)
+	subctx, cancel := context.WithTimeout(ctx, serverCtx.timeout)
 	defer cancel()
 
 	casa, err := c.GetAccount(subctx, &api.GetCasaAccountRequest{AccountId: accountID})
@@ -166,19 +151,9 @@ func getCasaAccount(ctx context.Context, accountID string, dashboard *api.Dashbo
 	return err
 }
 
-func getCustomer(ctx context.Context, custID string, dashboard *api.Dashboard) error {
-	if os.Getenv("USE_CUST_SVC") == "false" {
-		dashboard.Customer = &api.Customer{LoginName: "skip"}
-		return nil
-	}
-
-	conn, err := getCustomerConnection(ctx)
-	if err != nil {
-		return err
-	}
-
-	c := api.NewCustomerServiceClient(conn)
-	subctx, cancel := context.WithTimeout(ctx, TimeoutForDownstreamApi)
+func getCustomer(ctx context.Context, serverCtx *ServerContext, custID string, dashboard *api.Dashboard) error {
+	c := api.NewCustomerServiceClient(serverCtx.custSvcConn)
+	subctx, cancel := context.WithTimeout(ctx, serverCtx.timeout)
 	defer cancel()
 
 	cust, err := c.GetCustomer(subctx, &api.GetCustomerRequest{CustomerId: custID})
@@ -201,8 +176,10 @@ func InitGrpcServer() (*grpc.Server, error) {
 		log.Warn("Unable to register views for client stats ", err)
 	}
 
+	serverCtx := newServerContext()
+	svc := &Server{serverCtx}
+
 	s := grpc.NewServer(grpc.StatsHandler(&ocgrpc.ServerHandler{}))
-	svc := &Server{}
 	api.RegisterDashboardServiceServer(s, svc)
 	health.RegisterHealthServer(s, svc)
 	reflection.Register(s)

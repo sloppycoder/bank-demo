@@ -21,10 +21,7 @@ patchesJson6902:
         # value: { "name": "USE_STACKDRIVER", "value": "yes" }
       - op: add
         path: /spec/template/spec/containers/0/env/1
-        value: { "name": "APP_LOG_LEVEL", "value": "error" }
-      - op: add
-        path: /spec/template/spec/containers/0/env/2
         value: { "name": "USE_CUST_SVC", "value": "false" }
       - op: add
-        path: /spec/template/spec/containers/0/env/3
+        path: /spec/template/spec/containers/0/env/2
         value: { "name": "USE_CASA_SVC", "value": "false" }

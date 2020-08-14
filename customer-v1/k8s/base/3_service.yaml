@@ -25,8 +25,10 @@ spec:
             - containerPort: 50051
               protocol: TCP
           env:
-            - name: DUMMY
-              value: "do_not_remove"
+            - name: EXTERNAL_CUSTOMER_URL
+              value: "http://ext-cust-svc:8080/customers"
+            - name: LOGGING_LEVEL_ROOT
+              value: "ERROR"
           readinessProbe:
             exec:
               command: ["/grpc_health_probe", "-addr", "127.0.0.1:50051"]

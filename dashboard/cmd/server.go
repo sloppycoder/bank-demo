@@ -2,6 +2,7 @@ package main
 
 import (
 	"dashboard/app"
+	"github.com/pkg/profile"
 	"net"
 	"os"
 
@@ -38,6 +39,10 @@ func startServer() {
 }
 
 func main() {
+	if os.Getenv("ENABLE_PROFILING") == "true" {
+		defer profile.Start().Stop()
+	}
+
 	initLogging()
 	app.InitTracing()
 	startServer()

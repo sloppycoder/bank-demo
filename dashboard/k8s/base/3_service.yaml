@@ -15,10 +15,6 @@ spec:
       labels:
         app: dashboard
         version: v1
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/path: "/metrics"
-        prometheus.io/port: "8080"
     spec:
       terminationGracePeriodSeconds: 5
       containers:
@@ -28,13 +24,17 @@ spec:
           ports:
             - containerPort: 50051
               protocol: TCP
-            - containerPort: 8080
-              protocol: TCP
           env:
             - name: GRPC_LISTEN_ADDR
               value: ":50051"
-            - name: METRIC_HTTP_ADDR
-              value: ":8080"
+            - name: APP_LOG_LEVEL
+              value: "info"
+            - name: USE_CUST_INFO
+              value: "false"
+            - name: USE_CASA_INFO
+              value: "false"
+            - name: ENABLE_PROFILE
+              value: "false"
           readinessProbe:
             exec:
               command: ["/grpc_health_probe", "-addr", "127.0.0.1:50051"]
@@ -65,5 +65,3 @@ spec:
   ports:
     - name: grpc
       port: 50051
-    - name: http
-      port: 8080
