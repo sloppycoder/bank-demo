@@ -15,6 +15,7 @@ public class ExternalCustomerRepository {
     private static final Logger logger = LoggerFactory.getLogger(ExternalCustomerRepository.class);
 
     private RestTemplateBuilder restTemplateBuilder;
+    static private ThreadLocal<RestTemplate> holder = new ThreadLocal<>();
 
     @Value("${external.customer.url}")
     private String extCustomerSvcUrl;
@@ -26,8 +27,16 @@ public class ExternalCustomerRepository {
 
     public Map<String, String> getExternalCustomerById(String customerId) {
         logger.info("external.customer.url={}", extCustomerSvcUrl);
-        RestTemplate template = restTemplateBuilder.build();
-        Map<String, String> response = template.getForObject(extCustomerSvcUrl + "/" + customerId, Map.class);
+        Map<String, String> response = getLocalRestTemplate().getForObject(extCustomerSvcUrl + "/" + customerId, Map.class);
         return response;
+    }
+
+    private RestTemplate getLocalRestTemplate() {
+        RestTemplate template = holder.get();
+        if (template == null) {
+            template = restTemplateBuilder.build();
+            holder.set(template);
+        }
+        return template;
     }
 }
