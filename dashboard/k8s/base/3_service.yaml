@@ -31,9 +31,9 @@ spec:
               value: ":50051"
             - name: APP_LOG_LEVEL
               value: "warn"
-            - name: USE_CUST_INFO
+            - name: USE_CUST_SVC
               value: "true"
-            - name: USE_CASA_INFO
+            - name: USE_CASA_SVC
               value: "true"
             - name: ENABLE_PROFILING
               value: "false"
