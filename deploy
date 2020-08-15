@@ -103,7 +103,7 @@ fi
 if [ "$ISTIO" = "0" ]; then
     # remove namespace label if Istio is not installed
     # otherwise pods will not be run
-    kubectl label namespace istio-injection-
+    kubectl label namespace $APP_NAMESPACE istio-injection-
 fi
 
 # creating secret for cassandra database
