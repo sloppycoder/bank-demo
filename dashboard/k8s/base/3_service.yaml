@@ -24,6 +24,8 @@ spec:
           ports:
             - containerPort: 50051
               protocol: TCP
+            - containerPort: 6060
+              protocol: TCP
           env:
             - name: GRPC_LISTEN_ADDR
               value: ":50051"
@@ -33,7 +35,7 @@ spec:
               value: "true"
             - name: USE_CASA_INFO
               value: "true"
-            - name: ENABLE_PROFILE
+            - name: ENABLE_PROFILING
               value: "false"
           readinessProbe:
             exec:
@@ -45,8 +47,8 @@ spec:
             periodSeconds: 10
           resources:
             requests:
-              cpu: 125m
-              memory: 100Mi
+              cpu: 250m
+              memory: 128Mi
             limits:
               cpu: 1000m
               memory: 384Mi

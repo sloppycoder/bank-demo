@@ -2,8 +2,9 @@ package main
 
 import (
 	"dashboard/app"
-	"github.com/pkg/profile"
 	"net"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -40,7 +41,9 @@ func startServer() {
 
 func main() {
 	if os.Getenv("ENABLE_PROFILING") == "true" {
-		defer profile.Start().Stop()
+		go func() {
+			log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
+		}()
 	}
 
 	initLogging()
