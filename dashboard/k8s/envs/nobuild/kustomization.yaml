@@ -19,9 +19,3 @@ patchesJson6902:
         path: /spec/template/spec/containers/0/env/0
         value: { "name": "ZIPKIN_COLLECTOR_URL", "value": "http://zipkin.istio-system:9411/api/v2/spans" }
         # value: { "name": "USE_STACKDRIVER", "value": "yes" }
-      - op: add
-        path: /spec/template/spec/containers/0/env/1
-        value: { "name": "USE_CUST_SVC", "value": "false" }
-      - op: add
-        path: /spec/template/spec/containers/0/env/2
-        value: { "name": "USE_CASA_SVC", "value": "false" }
