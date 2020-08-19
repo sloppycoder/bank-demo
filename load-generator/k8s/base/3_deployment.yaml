@@ -19,12 +19,12 @@ spec:
               value: "dashboard:50051"
             - name: USERS
               value: "10"
-            - name: SLAVES
-              value: "3"
+            - name: POOLSIZE
+              value: "6"
             - name: BOOM_PARAMS
               value: "--max-rps 3000"
             - name: USE_DUMMY_ID
-              value: "false"
+              value: "true"
             - name: MYSQL_CONN_STRING
               valueFrom:
                 secretKeyRef:
