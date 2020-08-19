@@ -5,14 +5,15 @@ import (
 	"errors"
 	"io/ioutil"
 	"load-generator/api"
+	"load-generator/grpcpool"
 	"log"
 	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/myzhan/boomer"
@@ -63,15 +64,21 @@ func randID() func() string {
 func setupGrpcAPI(apiName string, getRandID func() string) func() {
 	log.Printf("setting up gRPC API %s for test", apiName)
 
+	pool, err := NewConnectionPool(apiName)
+	if err != nil {
+
+	}
+
 	return func() {
-		conn, err := getConnection(apiName)
-		if err != nil {
-			log.Panicf("Unable to connect to ")
-		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		conn, err := pool.Get(ctx)
+		defer conn.Close()
 
 		start := time.Now()
 		loginID := getRandID()
-		err = invokeApi(conn, apiName, loginID)
+		err = invokeApi(ctx, conn.ClientConn, apiName, loginID)
 		elapsed := time.Since(start)
 
 		if err != nil {
@@ -93,10 +100,7 @@ func setupGrpcAPI(apiName string, getRandID func() string) func() {
 	}
 }
 
-func invokeApi(conn *grpc.ClientConn, apiName, id string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func invokeApi(ctx context.Context, conn *grpc.ClientConn, apiName, id string) error {
 	var err error
 	switch apiName {
 	case "dashboard":
@@ -114,12 +118,7 @@ func invokeApi(conn *grpc.ClientConn, apiName, id string) error {
 	return err
 }
 
-func getConnection(apiName string) (*grpc.ClientConn, error) {
-	// TODO: should add some retry mechanism for wait for Transient Error and Connecting states
-	if _conn != nil && _conn.GetState() != connectivity.Shutdown {
-		return _conn, nil
-	}
-
+func NewConnectionPool(apiName string) (*grpcpool.Pool, error) {
 	svcAddr := os.Getenv("SVC_ADDR")
 	if svcAddr == "" {
 		switch apiName {
@@ -132,13 +131,22 @@ func getConnection(apiName string) (*grpc.ClientConn, error) {
 		}
 	}
 
-	conn, err := grpc.Dial(svcAddr, grpc.WithInsecure())
-	if err == nil {
-		_conn = conn
-		return _conn, nil
+	var factory grpcpool.Factory
+	factory = func() (*grpc.ClientConn, error) {
+		conn, err := grpc.Dial(svcAddr, grpc.WithInsecure())
+		if err != nil {
+			log.Fatalf("Failed to start gRPC connection: %v", err)
+		}
+		log.Printf("Connected to %s", svcAddr)
+		return conn, err
 	}
 
-	return nil, err
+	size ,err := strconv.Atoi(os.Getenv("POOLSIZE"))
+	if err != nil {
+		size = 6
+	}
+
+	return grpcpool.New(factory, size, size, time.Second)
 }
 
 func main() {

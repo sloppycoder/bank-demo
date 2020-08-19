@@ -19,9 +19,9 @@ spec:
               value: "dashboard"
             - name: USERS
               value: "10"
-            - name: SLAVES
-              value: "3"
+            - name: POOLSIZE
+              value: "6"
             - name: BOOM_PARAMS
               value: "--max-rps 3000"
             - name: USE_DUMMY_ID
-              value: "false"
+              value: "true"
