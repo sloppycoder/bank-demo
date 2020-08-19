@@ -15,7 +15,7 @@
     <description>customer micro service for banking app demo</description>
 
     <properties>
-        <java.version>11</java.version>
+        <java.version>8</java.version>
         <spring-cloud.version>Hoxton.SR4</spring-cloud.version>
         <logstash-logback-encoder.version>6.3</logstash-logback-encoder.version>
         <grpc-java.version>1.27.1</grpc-java.version>
