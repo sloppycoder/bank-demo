@@ -9,7 +9,7 @@ async def handle(request):
 
 def gen_customer(cust_id):
     return {
-        'id': cust_id,
+        'customer_id': cust_id,
         'name': 'dummy',
         'login_name': cust_id
     }
