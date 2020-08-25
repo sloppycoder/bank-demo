@@ -53,7 +53,7 @@ public class CustomerServiceImpl extends CustomerServiceGrpc.CustomerServiceImpl
       Map<String, String> extCustomer = repository.getExternalCustomerById(login);
       Customer customer =
           Customer.newBuilder()
-              .setCustomerId(extCustomer.get("id"))
+              .setCustomerId(extCustomer.get("customer_id"))
               .setName(extCustomer.get("name"))
               .setLoginName(extCustomer.get("login_name"))
               .build();
