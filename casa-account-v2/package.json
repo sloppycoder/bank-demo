@@ -7,7 +7,7 @@
     "@grpc/proto-loader": "^0.5.4",
     "async": "^1.5.2",
     "google-protobuf": "^3.11.0",
-    "grpc": "^1.24.2",
+    "grpc": "^1.24.9",
     "grpc-health-check": "^1.7.0",
     "lodash": "^4.17.19",
     "@opencensus/core": "^0.0.22",
